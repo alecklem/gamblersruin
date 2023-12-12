@@ -1,4 +1,6 @@
 from flask import Flask
+from nba_api.stats.endpoints import playercareerstats
+
 
 app = Flask(__name__)
 
@@ -6,7 +8,8 @@ app = Flask(__name__)
 @app.route("/example")
 def example():
     # API call
-    return {"members": ["Member1", "Member2", "Member3"]}
+
+    return
 
 if __name__ == "__main__":
     app.run(debug=True)
