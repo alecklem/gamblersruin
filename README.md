@@ -1,7 +1,7 @@
 # gamblersruin
 Statistics and Analytics service for prop bets
 ```
-pip3 install flask, flask-cors, nba_api
+pip3 install -r requirements.txt
 ```
 To run the flask server: (only need to do the export flask app line once)
 ```
