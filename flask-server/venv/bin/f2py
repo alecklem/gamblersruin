@@ -1,4 +1,4 @@
-#!/Users/alecklem/Desktop/gamblersruin/flask-server/venv/bin/python3.11
+#!/Users/ngoel/Desktop/Code/Alec/gamblersruin/flask-server/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
