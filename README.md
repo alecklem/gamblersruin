@@ -23,3 +23,4 @@ flask run
 cd client
 npm start
 ```
+flask --app server.py --debug run
