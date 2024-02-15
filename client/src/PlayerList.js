@@ -48,22 +48,22 @@ const PlayerList = () => {
   }, [searchQuery, players, selectedStat]);
 
   const routeMappings = {
-    "POINTS": "points",
-    "REBOUNDS": "rebounds",
-    "ASSISTS": "assists",
+    POINTS: "points",
+    REBOUNDS: "rebounds",
+    ASSISTS: "assists",
     "3PT": "three_pointers",
     "3PTA": "three_point_attempts",
-    "FG": "field_goals",
-    "FGA": "field_goals_attempted",
-    "STEALS": "steals",
-    "BLOCKS": "blocks",
-    "STOCKS": "stocks",
-    "PRA": "pra",
+    FG: "field_goals",
+    FGA: "field_goals_attempted",
+    STEALS: "steals",
+    BLOCKS: "blocks",
+    STOCKS: "stocks",
+    PRA: "pra",
     "PTS + REBOUNDS": "points_plus_rebounds",
     "POINTS + ASSISTS": "points_plus_assists",
-    "TURNOVERS": "turnovers",
+    TURNOVERS: "turnovers",
   };
-  
+
   const handleSave = async () => {
     if (selectedPlayer) {
       try {
@@ -72,7 +72,10 @@ const PlayerList = () => {
           player: selectedPlayer,
           category: selectedStat,
         });
-  
+
+        // Set the points data in state
+        setPointsData(response.data);
+
         // Handle the response if needed
         console.log(response.data);
       } catch (error) {
@@ -98,6 +101,7 @@ const PlayerList = () => {
   };
 
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+  const [pointsData, setPointsData] = useState(null);
 
   const handleStatSelect = (stat) => {
     setSelectedStat(stat);
@@ -120,7 +124,10 @@ const PlayerList = () => {
 
           {/* Button for stat selection */}
           <div className="stat-dropdown">
-            <button className="stat-button" onClick={() => setIsDropdownVisible(!isDropdownVisible)}>
+            <button
+              className="stat-button"
+              onClick={() => setIsDropdownVisible(!isDropdownVisible)}
+            >
               {selectedStat} {/* Display the selected stat in the button */}
             </button>
             {isDropdownVisible && (
@@ -138,9 +145,9 @@ const PlayerList = () => {
 
         <ul className="dropdown">
           {selectedPlayer ? (
-            <li 
-            key={selectedPlayer.id}
-            onClick={() => handlePlayerClick(selectedPlayer)}
+            <li
+              key={selectedPlayer.id}
+              onClick={() => handlePlayerClick(selectedPlayer)}
             >
               <img
                 width={60}
@@ -154,7 +161,11 @@ const PlayerList = () => {
               <li
                 key={player.id}
                 onClick={() => handlePlayerClick(player)}
-                className={selectedPlayer && selectedPlayer.id === player.id ? "selected" : ""}
+                className={
+                  selectedPlayer && selectedPlayer.id === player.id
+                    ? "selected"
+                    : ""
+                }
               >
                 <img
                   width={60}
@@ -167,6 +178,22 @@ const PlayerList = () => {
           )}
         </ul>
       </div>
+      {/* Display the points data */}
+      {pointsData && (
+        <div className="points-data">
+          <h2>Points Data</h2>
+          <p>Team Abbreviation: {pointsData.team_abbreviation}</p>
+          <p>Points Per Game: {pointsData.points_per_game}</p>
+          <p>
+            Player Points in Last 5 Games:{" "}
+            {pointsData.player_points_in_last_5_games.join(", ")}
+          </p>
+          <p>
+            Player performance against opponent:{" "}
+            {pointsData.player_points_against_opponent.join(", ")}
+          </p>
+        </div>
+      )}
     </div>
   );
 };
