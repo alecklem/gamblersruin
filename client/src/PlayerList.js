@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import PointsDashboard from "./components/dashboards/PointsDashboard";
-// Import other dashboards as needed
+import PointsDashboard from "./components/Dashboards/PointsDashboard";
 
 const PlayerList = () => {
   const [players, setPlayers] = useState([]);
