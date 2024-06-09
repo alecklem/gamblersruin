@@ -93,24 +93,24 @@ const PlayerList = () => {
       <h1 className="text-2xl font-bold mb-4">Enter Player and Prop Bet</h1>
       <div className="search-container flex flex-col items-center mb-4 w-full max-w-2xl">
         <div className="w-full flex items-center space-x-2">
-          {selectedPlayer && (
-            <img
-              width={40}
-              src={`https://cdn.nba.com/headshots/nba/latest/1040x760/${selectedPlayer.id}.png`}
-              alt={`${selectedPlayer.full_name}'s headshot`}
-              className="inline-block mr-2"
-            />
-          )}
-          <div className="relative flex-grow">
+          <div className="relative">
+            {selectedPlayer && (
+              <img
+                width={40}
+                src={`https://cdn.nba.com/headshots/nba/latest/1040x760/${selectedPlayer.id}.png`}
+                alt={`${selectedPlayer.full_name}'s headshot`}
+                className="absolute left-0 top-1/2 transform -translate-y-1/2"
+              />
+            )}
             <input
               type="text"
-              className="border rounded p-2 w-full h-12"
+              className="border rounded pl-12 w-96 h-12"
               placeholder="Search for a player"
               value={searchQuery}
               onChange={handleSearchQueryChange}
             />
             {isPlayerDropdownVisible && selectedPlayer == null && (
-              <ul className="player-dropdown absolute w-full border border-gray-300 rounded mt-1 max-h-60 overflow-y-auto bg-white z-10">
+              <ul className="player-dropdown absolute w-96 border border-gray-300 rounded mt-1 max-h-60 overflow-y-auto bg-white z-10">
                 {filteredPlayers.map((player) => (
                   <li
                     key={player.id}
@@ -129,7 +129,7 @@ const PlayerList = () => {
               </ul>
             )}
           </div>
-          <div className="relative inline-block text-left h-12">
+          <div className="relative inline-block text-left h-12 w-48">
             <StatDropdown
               selectedStat={selectedStat}
               setSelectedStat={setSelectedStat}
