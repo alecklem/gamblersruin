@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import PointsDashboard from "./components/dashboards/PointsDashboard";
+// Import other dashboards as needed
 
 const PlayerList = () => {
   const [players, setPlayers] = useState([]);
@@ -7,6 +9,8 @@ const PlayerList = () => {
   const [filteredPlayers, setFilteredPlayers] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [selectedStat, setSelectedStat] = useState("POINTS");
+  const [playerData, setPlayerData] = useState(null);
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 
   const statsOptions = [
     "POINTS",
@@ -39,13 +43,11 @@ const PlayerList = () => {
   }, []);
 
   useEffect(() => {
-    // Filter players based on the search query and selected stat
     const filtered = players.filter((player) =>
       player.full_name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
     setFilteredPlayers(filtered);
-  }, [searchQuery, players, selectedStat]);
+  }, [searchQuery, players]);
 
   const routeMappings = {
     POINTS: "points",
@@ -72,12 +74,7 @@ const PlayerList = () => {
           player: selectedPlayer,
           category: selectedStat,
         });
-
-        // Set the points data in state
-        setPointsData(response.data);
-
-        // Handle the response if needed
-        console.log(response.data);
+        setPlayerData(response.data);
       } catch (error) {
         console.error("Error saving data:", error);
       }
@@ -85,74 +82,94 @@ const PlayerList = () => {
   };
 
   const handlePlayerClick = (player) => {
-    // Toggle the selected player
     setSelectedPlayer((prevSelected) => {
       if (prevSelected && prevSelected.id === player.id) {
-        // Unselect the player if already selected
         return null;
       } else {
-        // Select the clicked player
         return player;
       }
     });
-
-    // Reset the search query when unselecting a player
     setSearchQuery("");
   };
 
-  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
-  const [pointsData, setPointsData] = useState(null);
-
   const handleStatSelect = (stat) => {
     setSelectedStat(stat);
-    setIsDropdownVisible(false); // Hide the dropdown after selecting a stat
+    setIsDropdownVisible(false);
+  };
+
+  const renderDashboard = () => {
+    switch (selectedStat) {
+      case "POINTS":
+        return <PointsDashboard data={playerData} />;
+      // Add cases for other stats and corresponding dashboards
+      default:
+        return null;
+    }
   };
 
   return (
-    <div>
-      <h1>Current NBA Players</h1>
-      <div className="search-container">
-        <div>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Current NBA Players</h1>
+      <div className="flex mb-4">
+        <div className="w-1/3">
           {!selectedPlayer && (
             <input
               type="text"
+              className="border rounded p-2 w-full"
               placeholder="Search for a player"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           )}
-
-          {/* Button for stat selection */}
-          <div className="stat-dropdown">
+          <div className="relative inline-block text-left">
             <button
-              className="stat-button"
+              className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700"
               onClick={() => setIsDropdownVisible(!isDropdownVisible)}
             >
-              {selectedStat} {/* Display the selected stat in the button */}
+              {selectedStat}
             </button>
             {isDropdownVisible && (
-              <ul className="stat-options">
-                {statsOptions.map((stat) => (
-                  <li key={stat} onClick={() => handleStatSelect(stat)}>
-                    {stat}
-                  </li>
-                ))}
-              </ul>
+              <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                <div
+                  className="py-1"
+                  role="menu"
+                  aria-orientation="vertical"
+                  aria-labelledby="options-menu"
+                >
+                  {statsOptions.map((stat) => (
+                    <a
+                      key={stat}
+                      href="#"
+                      onClick={() => handleStatSelect(stat)}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                      role="menuitem"
+                    >
+                      {stat}
+                    </a>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
-          <button onClick={handleSave}>Save Selected Player</button>
+          <button
+            onClick={handleSave}
+            className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
+          >
+            Save Selected Player
+          </button>
         </div>
-
-        <ul className="dropdown">
+        <ul className="w-2/3">
           {selectedPlayer ? (
             <li
               key={selectedPlayer.id}
               onClick={() => handlePlayerClick(selectedPlayer)}
+              className="cursor-pointer p-2 border-b"
             >
               <img
                 width={60}
                 src={`https://cdn.nba.com/headshots/nba/latest/1040x760/${selectedPlayer.id}.png`}
                 alt={`${selectedPlayer.full_name}'s headshot`}
+                className="inline-block mr-2"
               />
               {selectedPlayer.full_name}
             </li>
@@ -161,16 +178,17 @@ const PlayerList = () => {
               <li
                 key={player.id}
                 onClick={() => handlePlayerClick(player)}
-                className={
+                className={`cursor-pointer p-2 border-b ${
                   selectedPlayer && selectedPlayer.id === player.id
-                    ? "selected"
+                    ? "bg-gray-200"
                     : ""
-                }
+                }`}
               >
                 <img
                   width={60}
                   src={`https://cdn.nba.com/headshots/nba/latest/1040x760/${player.id}.png`}
                   alt={`${player.full_name}'s headshot`}
+                  className="inline-block mr-2"
                 />
                 {player.full_name}
               </li>
@@ -178,22 +196,7 @@ const PlayerList = () => {
           )}
         </ul>
       </div>
-      {/* Display the points data */}
-      {pointsData && (
-        <div className="points-data">
-          <h2>Points Data</h2>
-          <p>Team Abbreviation: {pointsData.team_abbreviation}</p>
-          <p>Points Per Game: {pointsData.points_per_game}</p>
-          <p>
-            Player Points in Last 5 Games:{" "}
-            {pointsData.player_points_in_last_5_games.join(", ")}
-          </p>
-          <p>
-            Player performance against opponent:{" "}
-            {pointsData.player_points_against_opponent.join(", ")}
-          </p>
-        </div>
-      )}
+      {playerData && renderDashboard()}
     </div>
   );
 };
