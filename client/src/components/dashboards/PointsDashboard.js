@@ -1,5 +1,5 @@
 import React from "react";
-import PointsChart from "../Charts/PointsChart";
+import PointsChart from "../charts/PointsChart";
 
 const PointsDashboard = ({ data }) => {
   return (
