@@ -18,6 +18,9 @@ cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
+# Hardcoded date for development
+HARD_CODED_DATE = datetime(2024, 2, 15)  # Mid-February 2024
+
 def get_season_by_date(date):
     year = date.year
     if date.month >= 10:  # Season starts in October
@@ -50,7 +53,6 @@ def load_players():
         app.logger.error(f"Error loading players: {e}")
         return jsonify({'error': str(e)}), 500
     
-    
 @app.route('/points', methods=['POST'])
 @cache.cached(timeout=300)  # Cache for 5 minutes
 def points():
@@ -62,7 +64,8 @@ def points():
         playerID = player["id"]
         app.logger.debug(f"Player ID: {playerID}")
 
-        current_date = datetime.now()
+        # Use hardcoded date instead of current date
+        current_date = HARD_CODED_DATE
         season = get_season_by_date(current_date)
         app.logger.debug(f"Using season: {season}")
 
