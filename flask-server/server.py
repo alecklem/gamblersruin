@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+import requests
 from flask_cors import CORS
 from flask_caching import Cache
 from nba_api.stats.static import players
@@ -8,6 +9,8 @@ from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
+API_KEY = '69501df68e79bf9926e950a6e58563eb'
+BASE_URL = 'https://api.the-odds-api.com/v4/sports'
 
 # Configure caching
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
@@ -21,6 +24,18 @@ def get_season_by_date(date):
         return f"{year}-{str(year + 1)[-2:]}"
     else:  # Season is in the new year but refers to the previous year's start
         return f"{year - 1}-{str(year)[-2:]}"
+    
+@app.route('/api/odds/')
+def get_odds(sport):
+    url = f"{BASE_URL}/basketball_nba/odds"
+    params = {
+        'apiKey': API_KEY,
+        'regions': 'us',  
+        'markets': 'totals',  # Adjust markets as needed
+    }
+    response = requests.get(url, params=params)
+    data = response.json()
+    return jsonify(data)
 
 @app.route('/')
 def default():

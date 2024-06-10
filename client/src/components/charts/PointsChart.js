@@ -1,13 +1,44 @@
 import React from "react";
 import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
-const PointsChart = ({ data }) => {
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+const PointsChart = () => {
+  const sampleData = {
+    dates: [
+      "2023-05-01",
+      "2023-05-03",
+      "2023-05-05",
+      "2023-05-07",
+      "2023-05-09",
+    ],
+    points: [22, 30, 25, 28, 32],
+  };
+
   const chartData = {
-    labels: data.dates,
+    labels: sampleData.dates,
     datasets: [
       {
         label: "Points",
-        data: data.points,
+        data: sampleData.points,
         fill: false,
         backgroundColor: "rgba(75, 192, 192, 0.2)",
         borderColor: "rgba(75, 192, 192, 1)",
