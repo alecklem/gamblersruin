@@ -56,8 +56,7 @@ const PlayerList = () => {
       try {
         const route = `http://127.0.0.1:5000/${routeMappings[selectedStat]}`;
         const response = await axios.post(route, {
-          player: selectedPlayer,
-          category: selectedStat,
+          player: { id: selectedPlayer.person_id },
         });
         setPlayerData(response.data);
       } catch (error) {
@@ -97,7 +96,7 @@ const PlayerList = () => {
             {selectedPlayer && (
               <img
                 width={40}
-                src={`https://cdn.nba.com/headshots/nba/latest/1040x760/${selectedPlayer.id}.png`}
+                src={`https://cdn.nba.com/headshots/nba/latest/1040x760/${selectedPlayer.person_id}.png`}
                 alt={`${selectedPlayer.full_name}'s headshot`}
                 className="absolute left-0 top-1/2 transform -translate-y-1/2"
               />
@@ -119,7 +118,7 @@ const PlayerList = () => {
                   >
                     <img
                       width={40}
-                      src={`https://cdn.nba.com/headshots/nba/latest/1040x760/${player.id}.png`}
+                      src={`https://cdn.nba.com/headshots/nba/latest/1040x760/${player.person_id}.png`}
                       alt={`${player.full_name}'s headshot`}
                       className="inline-block mr-2"
                     />
