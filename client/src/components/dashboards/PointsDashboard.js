@@ -1,5 +1,6 @@
 import React from "react";
 import PointsChart from "../charts/PointsChart";
+import PointsAgainstOpponentChart from "../charts/PointsAgainstOpponentChart";
 
 const PointsDashboard = ({ data }) => {
   return (
@@ -23,6 +24,17 @@ const PointsDashboard = ({ data }) => {
           }}
         />
       </div>
+      {data.player_points_against_opponent.length > 0 && (
+        <div className="w-full mt-4 max-w-lg">
+          <PointsAgainstOpponentChart
+            data={{
+              points: data.player_points_against_opponent,
+              dates: data.opponent_game_dates,
+              opponent: data.opponent_team_abbreviation,
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

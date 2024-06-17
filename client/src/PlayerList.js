@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import PointsDashboard from "./components/dashboards/PointsDashboard";
-import PointsAgainstOpponentChart from "./components/charts/PointsAgainstOpponentChart";
 import StatDropdown from "./components/StatDropdown";
 import "./styles/PlayerList.css";
 
@@ -145,15 +144,6 @@ const PlayerList = () => {
         </div>
       </div>
       {playerData && renderDashboard()}
-      {playerData && playerData.player_points_against_opponent.length > 0 && (
-        <PointsAgainstOpponentChart
-          data={{
-            points: playerData.player_points_against_opponent,
-            dates: playerData.opponent_game_dates,
-            opponent: playerData.opponent_team_abbreviation,
-          }}
-        />
-      )}
     </div>
   );
 };
