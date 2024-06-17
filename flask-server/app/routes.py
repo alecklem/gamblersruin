@@ -60,9 +60,11 @@ def points():
                 db.session.query(Game.game_id).filter(Game.team_id == opponent_team_id)
             )).all()
             player_points_against_opponent = [game.points for game in games_against_opponent]
+            opponent_game_dates = [game.game_date.strftime('%Y-%m-%d') for game in games_against_opponent]
         else:
             opponent_team_abbreviation = "N/A"
             player_points_against_opponent = []
+            opponent_game_dates = []
 
         return jsonify({
             'team_abbreviation': player_team_abbreviation,
@@ -71,8 +73,10 @@ def points():
             'player_points_in_last_5_games': player_points_in_last_5_games,
             'last_5_game_dates': last_5_game_dates,
             'player_points_against_opponent': player_points_against_opponent,
+            'opponent_game_dates': opponent_game_dates,
             'matchup': f"{player_team_abbreviation} vs {opponent_team_abbreviation}" if opponent_team_abbreviation != "N/A" else "N/A"
         })
+
 
     except Exception as e:
         app.logger.error(f"Error in /points route: {e}")

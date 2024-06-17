@@ -23,7 +23,7 @@ ChartJS.register(
   ChartDataLabels
 );
 
-const PointsChart = ({ data }) => {
+const PointsAgainstOpponentChart = ({ data }) => {
   const chartData = {
     labels: data.dates.reverse(), // Reverse to make the dates from farthest to closest
     datasets: [
@@ -54,20 +54,24 @@ const PointsChart = ({ data }) => {
     scales: {
       y: {
         beginAtZero: true,
+        ticks: {
+          padding: 5, // Add padding to prevent values from getting cut off
+        },
       },
     },
     layout: {
       padding: {
-        top: 10, // Add top padding
+        top: 20, // Add top padding
       },
     },
   };
 
   return (
     <div className="bg-white shadow rounded p-4 h-64">
+      <h2 className="text-xl font-bold mb-2">Points against {data.opponent}</h2>
       <Line data={chartData} options={options} />
     </div>
   );
 };
 
-export default PointsChart;
+export default PointsAgainstOpponentChart;

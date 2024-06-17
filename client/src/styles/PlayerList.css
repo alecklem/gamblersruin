@@ -1,14 +1,43 @@
+/* PlayerList.css */
+
 .player-list-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 50vh; /* Adjusted height */
+  min-height: 100vh; /* Full screen height */
   background-color: #f3f4f6; /* Tailwind's bg-gray-100 */
-  width: 100%; /* Added */
+  width: 100%; /* Full screen width */
 }
 
 .search-container {
   width: 100%;
   max-width: 32rem; /* Tailwind's max-w-2xl */
+}
+
+.module {
+  width: 40%; /* Decreased width */
+  margin: 0.5rem;
+  background: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.chart-container {
+  width: 80%; /* Ensure the chart container is wide enough */
+  max-width: 32rem; /* Tailwind's max-w-2xl */
+  margin: 1rem auto; /* Centered horizontally */
+  background: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.chart-container .chart {
+  position: relative;
+  height: 400px; /* Adjust height as necessary */
+  width: 100%; /* Ensure full width */
 }

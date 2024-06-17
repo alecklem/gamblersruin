@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import PointsDashboard from "./components/dashboards/PointsDashboard";
-import StatDropdown from "./components/StatDropdown"; // Import the StatDropdown component
-import "./styles/PlayerList.css"; // Import the CSS file
+import PointsAgainstOpponentChart from "./components/charts/PointsAgainstOpponentChart";
+import StatDropdown from "./components/StatDropdown";
+import "./styles/PlayerList.css";
 
 const PlayerList = () => {
   const [players, setPlayers] = useState([]);
@@ -81,14 +82,13 @@ const PlayerList = () => {
     switch (selectedStat) {
       case "POINTS":
         return <PointsDashboard data={playerData} />;
-      // Add cases for other stats and corresponding dashboards
       default:
         return null;
     }
   };
 
   return (
-    <div className="player-list-container p-4 w-full max-w-7xl mx-auto">
+    <div className="player-list-container">
       <h1 className="text-2xl font-bold mb-4 text-center">
         Enter Player and Prop Bet
       </h1>
@@ -145,6 +145,15 @@ const PlayerList = () => {
         </div>
       </div>
       {playerData && renderDashboard()}
+      {playerData && playerData.player_points_against_opponent.length > 0 && (
+        <PointsAgainstOpponentChart
+          data={{
+            points: playerData.player_points_against_opponent,
+            dates: playerData.opponent_game_dates,
+            opponent: playerData.opponent_team_abbreviation,
+          }}
+        />
+      )}
     </div>
   );
 };
