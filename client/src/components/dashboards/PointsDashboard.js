@@ -16,25 +16,27 @@ const PointsDashboard = ({ data }) => {
           <p className="text-center">{data.points_per_game}</p>
         </div>
       </div>
-      <div className="w-full mt-4 max-w-lg">
-        <PointsChart
-          data={{
-            dates: data.last_5_game_dates,
-            points: data.player_points_in_last_5_games,
-          }}
-        />
-      </div>
-      {data.player_points_against_opponent.length > 0 && (
-        <div className="w-full mt-4 max-w-lg">
-          <PointsAgainstOpponentChart
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-4">
+        <div className="w-full max-w-md">
+          <PointsChart
             data={{
-              points: data.player_points_against_opponent,
-              dates: data.opponent_game_dates,
-              opponent: data.opponent_team_abbreviation,
+              dates: data.last_5_game_dates,
+              points: data.player_points_in_last_5_games,
             }}
           />
         </div>
-      )}
+        {data.player_points_against_opponent.length > 0 && (
+          <div className="w-full max-w-md">
+            <PointsAgainstOpponentChart
+              data={{
+                points: data.player_points_against_opponent,
+                dates: data.opponent_game_dates,
+                opponent: data.opponent_team_abbreviation,
+              }}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

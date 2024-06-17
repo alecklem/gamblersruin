@@ -54,17 +54,28 @@ const PointsChart = ({ data }) => {
     scales: {
       y: {
         beginAtZero: true,
+        ticks: {
+          padding: 10, // Add padding to prevent values from getting cut off
+        },
+      },
+      x: {
+        ticks: {
+          padding: 10, // Add padding to prevent values from getting cut off
+        },
       },
     },
     layout: {
       padding: {
-        top: 10, // Add top padding
+        top: 20, // Add top padding
+        left: 20, // Add left padding
+        right: 10, // Reduce right padding
       },
     },
   };
 
   return (
     <div className="bg-white shadow rounded p-4 h-64">
+      <h2 className="text-xl font-bold mb-2">L5 PPG</h2>
       <Line data={chartData} options={options} />
     </div>
   );

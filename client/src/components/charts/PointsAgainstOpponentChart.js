@@ -55,13 +55,21 @@ const PointsAgainstOpponentChart = ({ data }) => {
       y: {
         beginAtZero: true,
         ticks: {
-          padding: 5, // Add padding to prevent values from getting cut off
+          padding: 10, // Add padding to prevent values from getting cut off
+        },
+      },
+      x: {
+        ticks: {
+          padding: 10, // Add padding to prevent values from getting cut off
         },
       },
     },
     layout: {
       padding: {
         top: 20, // Add top padding
+        bottom: 5, // Add bottom padding
+        left: 20, // Add left padding
+        right: 10, // Reduce right padding
       },
     },
   };
