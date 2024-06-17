@@ -44,12 +44,14 @@ def points():
         # Fetch last 5 games performance
         last_5_games = PlayerGameLog.query.filter_by(player_id=player_id).order_by(PlayerGameLog.game_date.desc()).limit(5).all()
         player_points_in_last_5_games = [game.points for game in last_5_games]
+        last_5_game_dates = [game.game_date.strftime('%Y-%m-%d') for game in last_5_games]
         app.logger.info(f"Last 5 games points: {player_points_in_last_5_games}")
 
+        # Temporarily hardcode a date (e.g., March 1, 2024)
+        hardcoded_date = datetime(2024, 3, 1)
+
         # Fetch performance against next opponent
-        next_game_entry = Game.query.filter(Game.game_id.in_(
-            db.session.query(PlayerGameLog.game_id).filter(PlayerGameLog.player_id == player_id)
-        )).filter(Game.team_id != str(player.team_id)).order_by(Game.game_date.asc()).first()
+        next_game_entry = Game.query.filter(Game.game_date > hardcoded_date).order_by(Game.game_date.asc()).first()
         
         if next_game_entry:
             opponent_team_abbreviation = next_game_entry.team_abbreviation
@@ -67,7 +69,9 @@ def points():
             'opponent_team_abbreviation': opponent_team_abbreviation,
             'points_per_game': points_per_game,
             'player_points_in_last_5_games': player_points_in_last_5_games,
-            'player_points_against_opponent': player_points_against_opponent
+            'last_5_game_dates': last_5_game_dates,
+            'player_points_against_opponent': player_points_against_opponent,
+            'matchup': f"{player_team_abbreviation} vs {opponent_team_abbreviation}" if opponent_team_abbreviation != "N/A" else "N/A"
         })
 
     except Exception as e:

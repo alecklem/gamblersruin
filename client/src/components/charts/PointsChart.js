@@ -21,24 +21,13 @@ ChartJS.register(
   Legend
 );
 
-const PointsChart = () => {
-  const sampleData = {
-    dates: [
-      "2023-05-01",
-      "2023-05-03",
-      "2023-05-05",
-      "2023-05-07",
-      "2023-05-09",
-    ],
-    points: [22, 30, 25, 28, 32],
-  };
-
+const PointsChart = ({ data }) => {
   const chartData = {
-    labels: sampleData.dates,
+    labels: data.dates,
     datasets: [
       {
         label: "Points",
-        data: sampleData.points,
+        data: data.points,
         fill: false,
         backgroundColor: "rgba(75, 192, 192, 0.2)",
         borderColor: "rgba(75, 192, 192, 1)",
@@ -55,8 +44,8 @@ const PointsChart = () => {
   };
 
   return (
-    <div className="bg-white shadow rounded p-4">
-      <h2 className="text-xl font-bold mb-2">Player Points in Last 5 Games</h2>
+    <div className="bg-white shadow rounded p-4 h-64">
+      <h2 className="text-xl font-bold mb-2 text-center">Last 5 PPG</h2>
       <Line data={chartData} options={options} />
     </div>
   );

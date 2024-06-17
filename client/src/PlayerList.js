@@ -88,10 +88,12 @@ const PlayerList = () => {
   };
 
   return (
-    <div className="player-list-container p-4">
-      <h1 className="text-2xl font-bold mb-4">Enter Player and Prop Bet</h1>
+    <div className="player-list-container p-4 w-full max-w-7xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4 text-center">
+        Enter Player and Prop Bet
+      </h1>
       <div className="search-container flex flex-col items-center mb-4 w-full max-w-2xl">
-        <div className="w-full flex items-center space-x-2">
+        <div className="w-full flex items-center space-x-2 justify-center">
           <div className="relative pt-2.5">
             {selectedPlayer && (
               <img

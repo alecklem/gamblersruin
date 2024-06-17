@@ -3,23 +3,25 @@ import PointsChart from "../charts/PointsChart";
 
 const PointsDashboard = ({ data }) => {
   return (
-    <div className="p-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        <div className="bg-white shadow rounded p-4">
-          <h2 className="text-xl font-bold mb-2">Team Abbreviation</h2>
-          <p>{data.team_abbreviation}</p>
+    <div className="p-4 w-full flex flex-col items-center">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
+        <div className="bg-white shadow rounded p-4 flex items-center justify-center h-24">
+          <h2 className="text-xl font-bold text-center">{data.matchup}</h2>
         </div>
-        <div className="bg-white shadow rounded p-4">
-          <h2 className="text-xl font-bold mb-2">Points Per Game</h2>
-          <p>{data.points_per_game}</p>
+        <div className="bg-white shadow rounded p-4 h-24">
+          <h2 className="text-xl font-bold mb-2 text-center">
+            Points Per Game
+          </h2>
+          <p className="text-center">{data.points_per_game}</p>
         </div>
+      </div>
+      <div className="w-full mt-4 max-w-lg">
         <PointsChart
           data={{
-            dates: ["Game 1", "Game 2", "Game 3", "Game 4", "Game 5"],
+            dates: data.last_5_game_dates,
             points: data.player_points_in_last_5_games,
           }}
         />
-        {/* Add more modular boxes for other stats as needed */}
       </div>
     </div>
   );
