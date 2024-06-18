@@ -19,13 +19,12 @@ def load_players():
         app.logger.error(f"Error loading players: {e}")
         return jsonify({'error': str(e)}), 500
 
-
 @app.route('/points', methods=['POST'])
 def points():
     try:
         data = request.get_json()
         app.logger.info(f"Received data: {data}")
-        
+
         player_id = data.get('player', {}).get('id')
         if not player_id:
             app.logger.error("Player ID not provided")
@@ -47,12 +46,22 @@ def points():
         last_5_game_dates = [game.game_date.strftime('%Y-%m-%d') for game in last_5_games]
         app.logger.info(f"Last 5 games points: {player_points_in_last_5_games}")
 
+        # Calculate home and away points per game
+        home_games = PlayerGameLog.query.filter_by(player_id=player_id, is_home_game=True).all()
+        away_games = PlayerGameLog.query.filter_by(player_id=player_id, is_home_game=False).all()
+
+        home_points = [game.points for game in home_games]
+        away_points = [game.points for game in away_games]
+
+        home_points_per_game = sum(home_points) / len(home_points) if home_points else 0
+        away_points_per_game = sum(away_points) / len(away_points) if away_points else 0
+
         # Temporarily hardcode a date (e.g., March 1, 2024)
         hardcoded_date = datetime(2024, 3, 1)
 
         # Fetch performance against next opponent
         next_game_entry = Game.query.filter(Game.game_date > hardcoded_date).order_by(Game.game_date.asc()).first()
-        
+
         if next_game_entry:
             opponent_team_abbreviation = next_game_entry.team_abbreviation
             opponent_team_id = next_game_entry.team_id
@@ -74,9 +83,10 @@ def points():
             'last_5_game_dates': last_5_game_dates,
             'player_points_against_opponent': player_points_against_opponent,
             'opponent_game_dates': opponent_game_dates,
-            'matchup': f"{player_team_abbreviation} vs {opponent_team_abbreviation}" if opponent_team_abbreviation != "N/A" else "N/A"
+            'matchup': f"{player_team_abbreviation} vs {opponent_team_abbreviation}" if opponent_team_abbreviation != "N/A" else "N/A",
+            'home_points_per_game': home_points_per_game,
+            'away_points_per_game': away_points_per_game
         })
-
 
     except Exception as e:
         app.logger.error(f"Error in /points route: {e}")

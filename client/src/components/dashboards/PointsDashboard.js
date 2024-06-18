@@ -17,6 +17,17 @@ const PointsDashboard = ({ data }) => {
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-4">
+        <div className="bg-white shadow rounded p-4 h-24">
+          <h2 className="text-xl font-bold mb-2 text-center">
+            Home vs. Away PPG
+          </h2>
+          <p className="text-center">
+            {data.home_points_per_game.toFixed(2)} vs.{" "}
+            {data.away_points_per_game.toFixed(2)}
+          </p>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-4">
         <div className="w-full max-w-md">
           <PointsChart
             data={{

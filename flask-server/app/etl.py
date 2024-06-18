@@ -7,7 +7,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app import create_app, db
-from app.models import Game
+from app.models import Game, PlayerGameLog
 
 app = create_app()
 
@@ -46,6 +46,24 @@ def update_game_dates():
 
         db.session.commit()
 
+def update_is_home_game():
+    with app.app_context():
+        # Query all player game logs
+        game_logs = PlayerGameLog.query.all()
+
+        for log in game_logs:
+            # Determine if the game is home or away based on the matchup string
+            if ' vs. ' in log.matchup:
+                log.is_home_game = True
+            elif ' @ ' in log.matchup:
+                log.is_home_game = False
+            else:
+                print(f"Unexpected matchup format: {log.matchup}")
+
+            db.session.add(log)
+        
+        db.session.commit()
+
 if __name__ == "__main__":
     with app.app_context():
-        update_game_dates()
+        update_is_home_game()
