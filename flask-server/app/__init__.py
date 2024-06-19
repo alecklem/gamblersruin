@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
+import logging
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -14,6 +15,14 @@ def create_app():
 
     db.init_app(app)
     migrate.init_app(app, db)
+
+    # Set up logging
+    if not app.debug:
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.INFO)
+        app.logger.addHandler(handler)
+    else:
+        logging.basicConfig(level=logging.DEBUG)
 
     with app.app_context():
         # Import parts of our application

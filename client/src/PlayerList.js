@@ -36,19 +36,7 @@ const PlayerList = () => {
 
   const routeMappings = {
     POINTS: "points",
-    REBOUNDS: "rebounds",
-    ASSISTS: "assists",
-    "3PT": "three_pointers",
-    "3PTA": "three_point_attempts",
-    FG: "field_goals",
-    FGA: "field_goals_attempted",
-    STEALS: "steals",
-    BLOCKS: "blocks",
-    STOCKS: "stocks",
-    PRA: "pra",
-    "PTS + REBOUNDS": "points_plus_rebounds",
-    "POINTS + ASSISTS": "points_plus_assists",
-    TURNOVERS: "turnovers",
+    // other mappings as needed
   };
 
   const handleSave = async () => {
@@ -58,7 +46,7 @@ const PlayerList = () => {
         const response = await axios.post(route, {
           player: { id: selectedPlayer.person_id },
         });
-        setPlayerData(response.data);
+        setPlayerData({ ...response.data, playerId: selectedPlayer.person_id });
       } catch (error) {
         console.error("Error saving data:", error);
       }
@@ -78,6 +66,8 @@ const PlayerList = () => {
   };
 
   const renderDashboard = () => {
+    if (!playerData) return null;
+
     switch (selectedStat) {
       case "POINTS":
         return <PointsDashboard data={playerData} />;
@@ -143,7 +133,7 @@ const PlayerList = () => {
           </button>
         </div>
       </div>
-      {playerData && renderDashboard()}
+      {renderDashboard()}
     </div>
   );
 };

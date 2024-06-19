@@ -1,0 +1,32 @@
+.rest-days-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-date {
+  margin: 0 10px;
+}
+
+.rest-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rest-days-text {
+  font-size: 12px;
+  margin-bottom: -5px;
+}
+
+.rest-days-text.b2b {
+  color: red;
+}
+
+.rest-days-text.one-day {
+  color: yellow;
+}
+
+.rest-days-text.multi-day {
+  color: green;
+}
