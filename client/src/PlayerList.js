@@ -3,6 +3,7 @@ import axios from "axios";
 import PointsDashboard from "./components/dashboards/PointsDashboard";
 import StatDropdown from "./components/StatDropdown";
 import "./styles/PlayerList.css";
+import AssistsDashboard from "./components/dashboards/AssistsDashboard";
 
 const PlayerList = () => {
   const [players, setPlayers] = useState([]);
@@ -36,7 +37,7 @@ const PlayerList = () => {
 
   const routeMappings = {
     POINTS: "points",
-    // other mappings as needed
+    ASSISTS: "assists",
   };
 
   const handleSave = async () => {
@@ -71,6 +72,8 @@ const PlayerList = () => {
     switch (selectedStat) {
       case "POINTS":
         return <PointsDashboard data={playerData} />;
+      case "ASSISTS":
+        return <AssistsDashboard data={playerData} />;
       default:
         return null;
     }
