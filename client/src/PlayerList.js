@@ -4,6 +4,7 @@ import PointsDashboard from "./components/dashboards/PointsDashboard";
 import StatDropdown from "./components/StatDropdown";
 import "./styles/PlayerList.css";
 import AssistsDashboard from "./components/dashboards/AssistsDashboard";
+import ReboundsDashboard from "./components/dashboards/ReboundsDashboard";
 
 const PlayerList = () => {
   const [players, setPlayers] = useState([]);
@@ -38,6 +39,7 @@ const PlayerList = () => {
   const routeMappings = {
     POINTS: "points",
     ASSISTS: "assists",
+    REBOUNDS: "rebounds",
   };
 
   const handleSave = async () => {
@@ -74,6 +76,8 @@ const PlayerList = () => {
         return <PointsDashboard data={playerData} />;
       case "ASSISTS":
         return <AssistsDashboard data={playerData} />;
+      case "REBOUNDS":
+        return <ReboundsDashboard data={playerData} />;
       default:
         return null;
     }
