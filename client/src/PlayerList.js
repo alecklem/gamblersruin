@@ -36,10 +36,16 @@ const PlayerList = () => {
     setIsPlayerDropdownVisible(filtered.length > 0 && searchQuery.length > 0);
   }, [searchQuery, players]);
 
+  // Clear playerData when selectedStat changes
+  useEffect(() => {
+    setPlayerData(null);
+  }, [selectedStat]);
+
   const routeMappings = {
     POINTS: "points",
     ASSISTS: "assists",
     REBOUNDS: "rebounds",
+    // Add other mappings as needed
   };
 
   const handleSave = async () => {
