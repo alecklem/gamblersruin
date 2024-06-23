@@ -4,6 +4,7 @@ import PointsDashboard from "./components/dashboards/PointsDashboard";
 import StatDropdown from "./components/StatDropdown";
 import "./styles/PlayerList.css";
 import AssistsDashboard from "./components/dashboards/AssistsDashboard";
+import ReboundsDashboard from "./components/dashboards/ReboundsDashboard";
 
 const PlayerList = () => {
   const [players, setPlayers] = useState([]);
@@ -35,9 +36,16 @@ const PlayerList = () => {
     setIsPlayerDropdownVisible(filtered.length > 0 && searchQuery.length > 0);
   }, [searchQuery, players]);
 
+  // Clear playerData when selectedStat changes
+  useEffect(() => {
+    setPlayerData(null);
+  }, [selectedStat]);
+
   const routeMappings = {
     POINTS: "points",
     ASSISTS: "assists",
+    REBOUNDS: "rebounds",
+    // Add other mappings as needed
   };
 
   const handleSave = async () => {
@@ -74,6 +82,8 @@ const PlayerList = () => {
         return <PointsDashboard data={playerData} />;
       case "ASSISTS":
         return <AssistsDashboard data={playerData} />;
+      case "REBOUNDS":
+        return <ReboundsDashboard data={playerData} />;
       default:
         return null;
     }
