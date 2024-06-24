@@ -1,8 +1,8 @@
 [phases.setup]
-apt_packages = ["python3", "python3-pip", "gcc"]
+apt = ["python3", "python3-pip", "python3-dev", "gcc"]
 
 [phases.build]
-commands = ["pip3 install -r app/requirements.txt"]
+commands = ["pip install -r flask-server/app/requirements.txt"]
 
 [phases.start]
-commands = ["python3 app/run.py"]
+commands = ["python flask-server/app/run.py"]
