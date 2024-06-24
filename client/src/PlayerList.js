@@ -18,7 +18,9 @@ const PlayerList = () => {
   useEffect(() => {
     const fetchPlayers = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:5000/loadplayers");
+        const response = await axios.get(
+          "http://gamblersruin-production.up.railway.app/loadplayers"
+        );
         setPlayers(response.data);
       } catch (error) {
         console.error("Error fetching player data:", error);
@@ -51,7 +53,7 @@ const PlayerList = () => {
   const handleSave = async () => {
     if (selectedPlayer) {
       try {
-        const route = `http://127.0.0.1:5000/${routeMappings[selectedStat]}`;
+        const route = `http://gamblersruin-production.up.railway.app/${routeMappings[selectedStat]}`;
         const response = await axios.post(route, {
           player: { id: selectedPlayer.person_id },
         });
