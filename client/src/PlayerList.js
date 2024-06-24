@@ -28,7 +28,7 @@ const PlayerList = () => {
     };
 
     fetchPlayers();
-  }, []);
+  }, [BACKEND_URL]);
 
   useEffect(() => {
     const filtered = players.filter((player) =>
