@@ -15,12 +15,12 @@ const PlayerList = () => {
   const [playerData, setPlayerData] = useState(null);
   const [isPlayerDropdownVisible, setIsPlayerDropdownVisible] = useState(false);
 
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
   useEffect(() => {
     const fetchPlayers = async () => {
       try {
-        const response = await axios.get(
-          "http://gamblersruin-production.up.railway.app/loadplayers"
-        );
+        const response = await axios.get(`${BACKEND_URL}/loadplayers`);
         setPlayers(response.data);
       } catch (error) {
         console.error("Error fetching player data:", error);
@@ -53,7 +53,7 @@ const PlayerList = () => {
   const handleSave = async () => {
     if (selectedPlayer) {
       try {
-        const route = `http://gamblersruin-production.up.railway.app/${routeMappings[selectedStat]}`;
+        const route = `${BACKEND_URL}/${routeMappings[selectedStat]}`;
         const response = await axios.post(route, {
           player: { id: selectedPlayer.person_id },
         });
