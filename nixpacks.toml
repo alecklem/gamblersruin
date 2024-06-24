@@ -3,5 +3,8 @@ language = "python"
 
 [python]
 version = "3.8"
-build = "pip install -r flask-server/app/requirements.txt"
+setup = """
+    apt-get update && apt-get install -y python3-pip
+"""
+build = "pip3 install -r flask-server/app/requirements.txt"
 start = "python3 flask-server/app/run.py"
