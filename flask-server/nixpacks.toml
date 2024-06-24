@@ -1,7 +1,0 @@
-[providers]
-language = "python"
-
-[python]
-version = "3.8"
-build = "pip install -r app/requirements.txt"
-start = "python3 app/run.py"
