@@ -10,7 +10,7 @@ migrate = Migrate()
 
 def create_app():
     app = Flask(__name__, instance_relative_config=False)
-    CORS(app)
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
     app.config.from_object('app.config.Config')
 

@@ -4,14 +4,14 @@ import os
 import requests
 import logging
 from nba_api.stats.endpoints import (playerindex, leaguegamelog, playergamelog, playerdashboardbygeneralsplits, 
-                                     commonteamyears, boxscoretraditionalv2, leaguegamefinder)
+                                     commonteamyears, boxscoretraditionalv2, leaguegamefinder, playerestimatedmetrics, teamestimatedmetrics)
 
 # Add the flask-server directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'flask-server')))
 
 from app import db, create_app
-from app.models import Player, Team, Game, PlayerGameLog
+from app.models import Player, Team, Game, PlayerGameLog, PlayerEstimatedMetrics, TeamEstimatedMetrics
 from sqlalchemy.exc import IntegrityError
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from datetime import datetime
@@ -317,11 +317,47 @@ def update_is_home_game():
         
         db.session.commit()
 
+def fetch_and_store_player_estimated_metrics():
+    player_metrics_response = playerestimatedmetrics.PlayerEstimatedMetrics()
+    player_metrics = player_metrics_response.get_dict()
+
+    for player in player_metrics['resultSet']['rowSet']:
+        player_id = player[0]  # Adjust the index based on the actual data structure
+        metrics = {key: value for key, value in zip(player_metrics['resultSet']['headers'], player)}
+
+        existing_record = PlayerEstimatedMetrics.query.filter_by(player_id=player_id).first()
+        if existing_record:
+            existing_record.metrics = metrics
+        else:
+            new_record = PlayerEstimatedMetrics(player_id=player_id, metrics=metrics)
+            db.session.add(new_record)
+
+    db.session.commit()
+
+def fetch_and_store_team_estimated_metrics():
+    team_metrics_response = teamestimatedmetrics.TeamEstimatedMetrics()
+    team_metrics = team_metrics_response.get_dict()
+
+    for team in team_metrics['resultSet']['rowSet']:
+        team_id = team[1]  # Adjust the index based on the actual data structure
+        metrics = {key: value for key, value in zip(team_metrics['resultSet']['headers'], team)}
+
+        existing_record = TeamEstimatedMetrics.query.filter_by(team_id=team_id).first()
+        if existing_record:
+            existing_record.metrics = metrics
+        else:
+            new_record = TeamEstimatedMetrics(team_id=team_id, metrics=metrics)
+            db.session.add(new_record)
+
+    db.session.commit()
+
 if __name__ == '__main__':
     with app.app_context():
         # load_players()
         # load_teams()
-        load_games()
-        load_player_game_logs()
-        update_game_dates()
-        update_is_home_game()
+        # load_games()
+        # load_player_game_logs()
+        # update_game_dates()
+        # update_is_home_game()
+        fetch_and_store_team_estimated_metrics()
+        fetch_and_store_player_estimated_metrics()

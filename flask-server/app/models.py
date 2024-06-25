@@ -94,3 +94,16 @@ class PlayerGameLog(db.Model):
     plus_minus = db.Column(db.Float)
     video_available = db.Column(db.Boolean)
     is_home_game = db.Column(db.Boolean, nullable=False)
+
+
+class PlayerEstimatedMetrics(db.Model):
+    __tablename__ = 'player_estimated_metrics'
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    metrics = db.Column(db.JSON, nullable=False)  # Assuming metrics are stored in JSON format
+
+class TeamEstimatedMetrics(db.Model):
+    __tablename__ = 'team_estimated_metrics'
+    id = db.Column(db.Integer, primary_key=True)
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
+    metrics = db.Column(db.JSON, nullable=False)  # Assuming metrics are stored in JSON format

@@ -20,6 +20,7 @@ const PlayerList = () => {
   useEffect(() => {
     const fetchPlayers = async () => {
       try {
+        console.log(BACKEND_URL);
         const response = await axios.get(`${BACKEND_URL}/loadplayers`);
         setPlayers(response.data);
       } catch (error) {
