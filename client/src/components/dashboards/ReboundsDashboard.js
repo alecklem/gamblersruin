@@ -1,9 +1,8 @@
 import React from "react";
-import ReboundsChart from "../charts/ReboundsChart";
-import ReboundsAgainstOpponentChart from "../charts/ReboundsAgainstOpponentChart";
 import PlayerEstimatedMetrics from "../PlayerEstimatedMetrics";
 import OpponentDefensiveRating from "../OpponentDefensiveRating";
 import RestDays from "../RestDays";
+import StatsChart from "../charts/StatsChart";
 
 const ReboundsDashboard = ({ data }) => {
   if (!data) {
@@ -26,73 +25,76 @@ const ReboundsDashboard = ({ data }) => {
   } = data;
 
   return (
-    <div className="p-4 w-full flex flex-col items-center">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
-        <div className="bg-white shadow rounded p-4 flex items-center justify-center h-24">
-          <h2 className="text-xl font-bold text-center">{matchup || "N/A"}</h2>
-        </div>
-        <div className="bg-white shadow rounded p-4 h-24">
-          <h2 className="text-xl font-bold mb-2 text-center">
-            Rebounds Per Game
-          </h2>
-          <p className="text-center">
-            {rebounds_per_game?.toFixed(2) || "N/A"}
-          </p>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-4">
-        <div className="bg-white shadow rounded p-4 h-24">
-          <h2 className="text-xl font-bold mb-2 text-center">
-            Home vs. Away RPG
-          </h2>
-          <p className="text-center">
-            {home_rebounds_per_game?.toFixed(2) || "N/A"} vs.{" "}
-            {away_rebounds_per_game?.toFixed(2) || "N/A"}
-          </p>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-4">
-        <div className="w-full max-w-md">
-          <ReboundsChart
-            data={{
-              dates: last_5_game_dates || [],
-              rebounds: player_rebounds_in_last_5_games || [],
-            }}
-          />
-        </div>
-        {player_rebounds_against_opponent?.length > 0 && (
-          <div className="w-full max-w-md">
-            <ReboundsAgainstOpponentChart
+    <div>
+      <div className="pt-10 px-10">
+        <div className="w-full grid grid-flow-column-dense grid-cols-5 grid-rows-9 gap-6">
+          <div className="bg-white shadow rounded flex items-center justify-center h-24">
+            <h2 className="text-xl font-bold text-center">{data.matchup}</h2>
+          </div>
+          <div className="bg-white shadow rounded p-4 h-24">
+            <h2 className="text-xl font-bold mb-2 text-center">
+              Rebounds Per Game
+            </h2>
+            <p className="text-center">{data.rebounds_per_game}</p>
+          </div>
+          <div className="bg-white shadow rounded p-4 h-24">
+            <h2 className="text-xl font-bold mb-2 text-center">
+              Home vs. Away PPG
+            </h2>
+            <p className="text-center">
+              {data.home_rebounds_per_game.toFixed(2)} vs.{" "}
+              {data.away_rebounds_per_game.toFixed(2)}
+            </p>
+          </div>
+          <div className="col-span-2 ">
+            <div className="bg-white shadow rounded p-4 h-24">
+              <h2 className="text-xl font-bold mb-2 text-center">
+                Rest Days Between Last 5 Games
+              </h2>
+              <RestDays
+                gameDates={data.last_5_game_dates}
+                restDays={data.rest_days}
+              />
+            </div>
+          </div>
+          <div className="col-span-2 row-span-3">
+            <StatsChart
               data={{
-                rebounds: player_rebounds_against_opponent,
-                dates: opponent_game_dates || [],
-                opponent: opponent_team_abbreviation || "N/A",
+                dates: data.opponent_game_dates,
+                value: data.player_rebounds_against_opponent,
               }}
+              label="Rebounds"
+              title={`Rebounds against ${data.opponent_team_abbreviation}`}
+              dataLabel="Rebounds"
             />
           </div>
-        )}
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-4">
-        <div className="bg-white shadow rounded p-4 h-24">
-          <h2 className="text-xl font-bold mb-2 text-center">
-            Rest Days Between Last 5 Games
-          </h2>
-          <RestDays
-            gameDates={last_5_game_dates || []}
-            restDays={rest_days || []}
-          />
-        </div>
-        <div className="bg-white shadow rounded p-4 h-auto">
-          <h2 className="text-xl font-bold mb-2 text-center">
-            Player Estimated Metrics
-          </h2>
-          <PlayerEstimatedMetrics metrics={player_metrics || {}} />
-        </div>
-        <div className="bg-white shadow rounded p-4 h-auto">
-          <h2 className="text-xl font-bold mb-2 text-center">
-            Opponent Defensive Rating
-          </h2>
-          <OpponentDefensiveRating metrics={team_metrics || {}} />
+          <div className="col-span-2 row-span-3">
+            <StatsChart
+              data={{
+                dates: data.last_5_game_dates,
+                value: data.player_rebounds_in_last_5_games,
+              }}
+              label="Rebounds"
+              title="L5 RPG"
+              dataLabel="Rebounds"
+            />
+          </div>
+          <div className="col-span-2 row-span-4">
+            <div className="bg-white shadow rounded p-4 h-auto">
+              <h2 className="text-xl font-bold mb-2 text-center">
+                Player Estimated Metrics
+              </h2>
+              <PlayerEstimatedMetrics metrics={data.player_metrics} />
+            </div>
+          </div>
+          <div className="col-span-2 row-span-4">
+            <div className="bg-white shadow rounded p-4 h-auto">
+              <h2 className="text-xl font-bold mb-2 text-center">
+                Opponent Defensive Rating
+              </h2>
+              <OpponentDefensiveRating metrics={data.team_metrics} />
+            </div>
+          </div>
         </div>
       </div>
     </div>

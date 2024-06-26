@@ -2,14 +2,13 @@ import React from "react";
 import OpponentDefensiveRating from "../OpponentDefensiveRating";
 import PlayerEstimatedMetrics from "../PlayerEstimatedMetrics";
 import RestDays from "../RestDays";
-import PointsAgainstOpponentChart from "../charts/PointsAgainstOpponentChart";
-import PointsChart from "../charts/PointsChart";
+import StatsChart from "../charts/StatsChart";
 
 const PointsDashboard = ({ data }) => {
   return (
-    <div className="p-4 w-full flex flex-col items-center">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
-        <div className="bg-white shadow rounded p-4 flex items-center justify-center h-24">
+    <div className="pt-10 px-10">
+      <div className="w-full grid grid-flow-column-dense grid-cols-5 grid-rows-9 gap-6">
+        <div className="bg-white shadow rounded flex items-center justify-center h-24">
           <h2 className="text-xl font-bold text-center">{data.matchup}</h2>
         </div>
         <div className="bg-white shadow rounded p-4 h-24">
@@ -18,8 +17,6 @@ const PointsDashboard = ({ data }) => {
           </h2>
           <p className="text-center">{data.points_per_game}</p>
         </div>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-4">
         <div className="bg-white shadow rounded p-4 h-24">
           <h2 className="text-xl font-bold mb-2 text-center">
             Home vs. Away PPG
@@ -29,49 +26,54 @@ const PointsDashboard = ({ data }) => {
             {data.away_points_per_game.toFixed(2)}
           </p>
         </div>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-4">
-        <div className="w-full">
-          <PointsChart
-            data={{
-              dates: data.last_5_game_dates,
-              points: data.player_points_in_last_5_games,
-            }}
-          />
-        </div>
-        {data.player_points_against_opponent.length > 0 && (
-          <div className="w-full">
-            <PointsAgainstOpponentChart
-              data={{
-                points: data.player_points_against_opponent,
-                dates: data.opponent_game_dates,
-                opponent: data.opponent_team_abbreviation,
-              }}
+        <div className="col-span-2 ">
+          <div className="bg-white shadow rounded p-4 h-24">
+            <h2 className="text-xl font-bold mb-2 text-center">
+              Rest Days Between Last 5 Games
+            </h2>
+            <RestDays
+              gameDates={data.last_5_game_dates}
+              restDays={data.rest_days}
             />
           </div>
-        )}
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-4">
-        <div className="bg-white shadow rounded p-4 h-24">
-          <h2 className="text-xl font-bold mb-2 text-center">
-            Rest Days Between Last 5 Games
-          </h2>
-          <RestDays
-            gameDates={data.last_5_game_dates}
-            restDays={data.rest_days}
+        </div>
+        <div className="col-span-2 row-span-3">
+          <StatsChart
+            data={{
+              dates: data.opponent_game_dates,
+              value: data.player_points_against_opponent,
+            }}
+            label="Points"
+            title={`Points against ${data.opponent_team_abbreviation}`}
+            dataLabel="Points"
           />
         </div>
-        <div className="bg-white shadow rounded p-4 h-auto">
-          <h2 className="text-xl font-bold mb-2 text-center">
-            Player Estimated Metrics
-          </h2>
-          <PlayerEstimatedMetrics metrics={data.player_metrics} />
+        <div className="col-span-2 row-span-3">
+          <StatsChart
+            data={{
+              dates: data.last_5_game_dates,
+              value: data.player_points_in_last_5_games,
+            }}
+            label="Points"
+            title="L5 PPG"
+            dataLabel="Points"
+          />
         </div>
-        <div className="bg-white shadow rounded p-4 h-auto">
-          <h2 className="text-xl font-bold mb-2 text-center">
-            Opponent Defensive Rating
-          </h2>
-          <OpponentDefensiveRating metrics={data.team_metrics} />
+        <div className="col-span-2 row-span-4">
+          <div className="bg-white shadow rounded p-4 h-auto">
+            <h2 className="text-xl font-bold mb-2 text-center">
+              Player Estimated Metrics
+            </h2>
+            <PlayerEstimatedMetrics metrics={data.player_metrics} />
+          </div>
+        </div>
+        <div className="col-span-2 row-span-4">
+          <div className="bg-white shadow rounded p-4 h-auto">
+            <h2 className="text-xl font-bold mb-2 text-center">
+              Opponent Defensive Rating
+            </h2>
+            <OpponentDefensiveRating metrics={data.team_metrics} />
+          </div>
         </div>
       </div>
     </div>

@@ -149,7 +149,7 @@ const PlayerList = () => {
           </button>
         </div>
       </div>
-      {renderDashboard()}
+      <div className="w-full">{renderDashboard()}</div>
     </div>
   );
 };
