@@ -39,7 +39,7 @@ def points():
 
         points_per_game = round(player.pts, 2)
         player_team_abbreviation = player.team_abbreviation
-        player_team_id = str(player.team_id)  # Ensure team_id is a string
+        player_team_id = str(player.team_id)
 
         last_5_games = PlayerGameLog.query.filter_by(player_id=player_id).order_by(PlayerGameLog.game_date.desc()).limit(5).all()
         player_points_in_last_5_games = [game.points for game in last_5_games]

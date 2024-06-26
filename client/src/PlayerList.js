@@ -12,6 +12,7 @@ const PlayerList = () => {
   const [filteredPlayers, setFilteredPlayers] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [selectedStat, setSelectedStat] = useState("POINTS");
+  const [localSelectedStat, setLocalSelectedStat] = useState("POINTS");
   const [playerData, setPlayerData] = useState(null);
   const [isPlayerDropdownVisible, setIsPlayerDropdownVisible] = useState(false);
   const [betQuantity, setBetQuantity] = useState(15.5);
@@ -21,7 +22,6 @@ const PlayerList = () => {
   useEffect(() => {
     const fetchPlayers = async () => {
       try {
-        console.log(BACKEND_URL);
         const response = await axios.get(`${BACKEND_URL}/loadplayers`);
         setPlayers(response.data);
       } catch (error) {
@@ -40,11 +40,6 @@ const PlayerList = () => {
     setIsPlayerDropdownVisible(filtered.length > 0 && searchQuery.length > 0);
   }, [searchQuery, players]);
 
-  // Clear playerData when selectedStat changes
-  useEffect(() => {
-    setPlayerData(null);
-  }, [selectedStat]);
-
   const routeMappings = {
     POINTS: "points",
     ASSISTS: "assists",
@@ -55,16 +50,16 @@ const PlayerList = () => {
   const handleSave = async () => {
     if (selectedPlayer) {
       try {
-        const route = `${BACKEND_URL}/${routeMappings[selectedStat]}`;
+        const route = `${BACKEND_URL}/${routeMappings[localSelectedStat]}`;
         const response = await axios.post(route, {
           player: { id: selectedPlayer.person_id },
         });
-        console.log(betQuantity);
         setPlayerData({
           ...response.data,
           playerId: selectedPlayer.person_id,
           betNumber: betQuantity,
         });
+        setSelectedStat(localSelectedStat);
       } catch (error) {
         console.error("Error saving data:", error);
       }
@@ -148,22 +143,22 @@ const PlayerList = () => {
               </ul>
             )}
           </div>
-          <div className="relative inline-block text-left w-48">
+          <div className="relative inline-block text-left w-30">
             <StatDropdown
-              selectedStat={selectedStat}
-              setSelectedStat={setSelectedStat}
+              selectedStat={localSelectedStat}
+              setSelectedStat={setLocalSelectedStat}
             />
           </div>
           <input
             type="text"
-            placeholder="15.5"
-            className="border rounded pl-3 w-16"
+            placeholder={betQuantity}
+            className="border rounded pl-3 w-16 h-12"
             value={betQuantity}
             onChange={handleBetQuantityChange}
           ></input>
           <button
             onClick={handleSave}
-            className="bg-blue-500 text-white px-4 rounded"
+            className="bg-blue-500 text-white px-2 rounded" // Adjust padding here
           >
             Save
           </button>

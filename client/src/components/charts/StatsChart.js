@@ -24,12 +24,15 @@ ChartJS.register(
 );
 
 const StatsChart = ({ data, label, title, dataLabel }) => {
-  console.log(data.betNumber);
   const betAmount = data.betNumber;
   const betArray = [];
   for (let i = 0; i < data.value.length; i++) {
     betArray.push(betAmount);
   }
+
+  // Determine max value for y-axis
+  const maxValue = Math.max(...data.value);
+
   const chartData = {
     labels: data.dates.reverse(), // Reverse to make the dates from farthest to closest
     datasets: [
@@ -62,11 +65,14 @@ const StatsChart = ({ data, label, title, dataLabel }) => {
       },
       tooltip: {
         callbacks: {
+          title: function () {
+            return ""; // Remove the title (date) from the tooltip
+          },
           label: function (context) {
             if (context.dataset.label === "Bet Amount") {
               return `Bet Value: ${betAmount}`;
             }
-            return context.raw;
+            return `Value: ${context.raw}`;
           },
         },
         mode: "nearest", // Change the tooltip mode to 'nearest'
@@ -97,7 +103,8 @@ const StatsChart = ({ data, label, title, dataLabel }) => {
         ticks: {
           padding: 10, // Add padding to prevent values from getting cut off
         },
-        beginAtZero: false, // Ensures the chart starts from zero
+        beginAtZero: false,
+        suggestedMax: maxValue + 1, // Adds extra space above the highest data point
       },
       x: {
         ticks: {

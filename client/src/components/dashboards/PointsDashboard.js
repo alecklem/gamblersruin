@@ -7,7 +7,6 @@ import StatsChart from "../charts/StatsChart";
 const PointsDashboard = ({ data }) => {
   const playerColors = data.player_team_colors;
   const opponentColors = data.opponent_team_colors;
-  console.log(data.betNumber);
 
   const getTeamColorStyle = (colors) => {
     return {
