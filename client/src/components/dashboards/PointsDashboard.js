@@ -13,6 +13,48 @@ const PointsDashboard = ({ data }) => {
       color: colors[0],
     };
   };
+
+  // Function to sort the dates and corresponding points in order of furthest to most recent
+  const sortDatesAndPoints = (dates, points) => {
+    const seasonStartYear = new Date().getFullYear() - 1; // Assuming the season starts in the previous year
+
+    const datePointsArray = dates.map((date, index) => ({
+      date,
+      points: points[index],
+    }));
+
+    datePointsArray.sort((a, b) => {
+      const [aMonth, aDay] = a.date.split("/").map(Number);
+      const [bMonth, bDay] = b.date.split("/").map(Number);
+
+      const aDate = new Date(
+        aMonth >= 8 ? seasonStartYear : seasonStartYear + 1,
+        aMonth - 1,
+        aDay
+      );
+      const bDate = new Date(
+        bMonth >= 8 ? seasonStartYear : seasonStartYear + 1,
+        bMonth - 1,
+        bDay
+      );
+
+      return bDate - aDate;
+    });
+
+    return {
+      sortedDates: datePointsArray.map((item) => item.date).reverse(),
+      sortedPoints: datePointsArray.map((item) => item.points).reverse(),
+    };
+  };
+
+  const {
+    sortedDates: sortedOpponentGameDates,
+    sortedPoints: sortedOpponentPoints,
+  } = sortDatesAndPoints(
+    data.opponent_game_dates,
+    data.player_points_against_opponent
+  );
+
   return (
     <div className="pt-10 px-10">
       <div className="w-full grid grid-flow-column-dense grid-cols-5 grid-rows-9 gap-6">
@@ -56,8 +98,8 @@ const PointsDashboard = ({ data }) => {
         <div className="col-span-2 row-span-3">
           <StatsChart
             data={{
-              dates: data.opponent_game_dates,
-              value: data.player_points_against_opponent,
+              dates: sortedOpponentGameDates,
+              value: sortedOpponentPoints,
               betNumber: data.betNumber,
               player_team_colors: data.player_team_colors,
               opponent_team_colors: data.opponent_team_colors,

@@ -46,8 +46,6 @@ const StatsChart = ({ data, label, title, dataLabel }) => {
   const secondaryColor = data.player_team_colors[1];
   const contrastingTextColor = getContrastingColor(secondaryColor);
 
-  console.log(data.player_team_colors);
-
   // Determine max value for y-axis
   const maxValue = Math.max(...data.value);
 
@@ -56,11 +54,11 @@ const StatsChart = ({ data, label, title, dataLabel }) => {
   const backgroundColorWithOpacity = rgbToRgba(secondaryColor, opacityLevel);
 
   const chartData = {
-    labels: data.dates.reverse(), // Reverse to make the dates from farthest to closest
+    labels: data.dates, // Reverse to make the dates from farthest to closest
     datasets: [
       {
         label: dataLabel,
-        data: data.value.reverse(), // Reverse to match the order of dates
+        data: data.value, // Reverse to match the order of dates
         fill: false,
         backgroundColor: primaryColor,
         borderColor: primaryColor,
