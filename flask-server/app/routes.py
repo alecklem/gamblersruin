@@ -81,7 +81,7 @@ def points():
             player_points_against_opponent = []
             opponent_game_dates = []
 
-        # Fetch Player Estimated Metrics
+        # Fetch Player Estimated Metrics 
         player_metrics = PlayerEstimatedMetrics.query.filter_by(player_id=player_id).first()
         player_metrics_filtered = player_metrics.metrics if player_metrics else {}
 
