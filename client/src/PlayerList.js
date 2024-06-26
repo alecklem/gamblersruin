@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
 import axios from "axios";
-import PointsDashboard from "./components/dashboards/PointsDashboard";
+import React, { useEffect, useState } from "react";
 import StatDropdown from "./components/StatDropdown";
-import "./styles/PlayerList.css";
 import AssistsDashboard from "./components/dashboards/AssistsDashboard";
+import PointsDashboard from "./components/dashboards/PointsDashboard";
 import ReboundsDashboard from "./components/dashboards/ReboundsDashboard";
+import "./styles/PlayerList.css";
 
 const PlayerList = () => {
   const [players, setPlayers] = useState([]);
@@ -97,20 +97,20 @@ const PlayerList = () => {
       <h1 className="text-2xl font-bold mb-4 text-center">
         Enter Player and Prop Bet
       </h1>
-      <div className="search-container flex flex-col items-center mb-4 w-full max-w-2xl">
-        <div className="w-full flex items-center space-x-2 justify-center">
-          <div className="relative pt-2.5">
+      <div className="">
+        <div className="flex gap-2">
+          <div className="relative">
             {selectedPlayer && (
               <img
                 width={40}
                 src={`https://cdn.nba.com/headshots/nba/latest/1040x760/${selectedPlayer.person_id}.png`}
                 alt={`${selectedPlayer.full_name}'s headshot`}
-                className="absolute left-0 top-1/2 transform -translate-y-1/2"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2"
               />
             )}
             <input
               type="text"
-              className="border rounded pl-12 w-96 h-12"
+              className="border rounded pl-3 w-96 h-12"
               placeholder="Search for a player"
               value={searchQuery}
               onChange={handleSearchQueryChange}
@@ -135,7 +135,7 @@ const PlayerList = () => {
               </ul>
             )}
           </div>
-          <div className="relative inline-block text-left h-12 w-48">
+          <div className="relative inline-block text-left w-48">
             <StatDropdown
               selectedStat={selectedStat}
               setSelectedStat={setSelectedStat}
@@ -143,7 +143,7 @@ const PlayerList = () => {
           </div>
           <button
             onClick={handleSave}
-            className="bg-blue-500 text-white px-4 rounded h-12"
+            className="bg-blue-500 text-white px-4 rounded"
           >
             Save
           </button>

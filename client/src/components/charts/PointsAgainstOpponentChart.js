@@ -1,16 +1,16 @@
-import React from "react";
-import { Line } from "react-chartjs-2";
 import {
-  Chart as ChartJS,
   CategoryScale,
+  Chart as ChartJS,
+  Legend,
+  LineElement,
   LinearScale,
   PointElement,
-  LineElement,
   Title,
   Tooltip,
-  Legend,
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
+import React from "react";
+import { Line } from "react-chartjs-2";
 
 ChartJS.register(
   CategoryScale,
@@ -75,7 +75,7 @@ const PointsAgainstOpponentChart = ({ data }) => {
   };
 
   return (
-    <div className="bg-white shadow rounded p-4 h-64">
+    <div className="bg-white shadow rounded p-4">
       <h2 className="text-xl font-bold mb-2">Points against {data.opponent}</h2>
       <Line data={chartData} options={options} />
     </div>

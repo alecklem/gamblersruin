@@ -1,9 +1,9 @@
 import React from "react";
-import PointsChart from "../charts/PointsChart";
-import PointsAgainstOpponentChart from "../charts/PointsAgainstOpponentChart";
-import PlayerEstimatedMetrics from "../PlayerEstimatedMetrics";
 import OpponentDefensiveRating from "../OpponentDefensiveRating";
+import PlayerEstimatedMetrics from "../PlayerEstimatedMetrics";
 import RestDays from "../RestDays";
+import PointsAgainstOpponentChart from "../charts/PointsAgainstOpponentChart";
+import PointsChart from "../charts/PointsChart";
 
 const PointsDashboard = ({ data }) => {
   return (
@@ -31,7 +31,7 @@ const PointsDashboard = ({ data }) => {
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-4">
-        <div className="w-full max-w-md">
+        <div className="w-full">
           <PointsChart
             data={{
               dates: data.last_5_game_dates,
@@ -40,7 +40,7 @@ const PointsDashboard = ({ data }) => {
           />
         </div>
         {data.player_points_against_opponent.length > 0 && (
-          <div className="w-full max-w-md">
+          <div className="w-full">
             <PointsAgainstOpponentChart
               data={{
                 points: data.player_points_against_opponent,
