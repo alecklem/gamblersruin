@@ -5,11 +5,28 @@ import RestDays from "../RestDays";
 import StatsChart from "../charts/StatsChart";
 
 const PointsDashboard = ({ data }) => {
+  const playerColors = data.player_team_colors;
+  const opponentColors = data.opponent_team_colors;
+  console.log(data.team_metrics);
+
+  const getTeamColorStyle = (colors) => {
+    return {
+      color: colors[0],
+    };
+  };
   return (
     <div className="pt-10 px-10">
       <div className="w-full grid grid-flow-column-dense grid-cols-5 grid-rows-9 gap-6">
         <div className="bg-white shadow rounded flex items-center justify-center h-24">
-          <h2 className="text-xl font-bold text-center">{data.matchup}</h2>
+          <h2 className="text-xl font-bold text-center">
+            <span style={getTeamColorStyle(playerColors)}>
+              {data.team_abbreviation}
+            </span>{" "}
+            vs.{" "}
+            <span style={getTeamColorStyle(opponentColors)}>
+              {data.opponent_team_abbreviation}
+            </span>
+          </h2>
         </div>
         <div className="bg-white shadow rounded p-4 h-24">
           <h2 className="text-xl font-bold mb-2 text-center">

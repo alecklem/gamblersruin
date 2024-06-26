@@ -9,21 +9,6 @@ const ReboundsDashboard = ({ data }) => {
     return <div>Loading...</div>;
   }
 
-  const {
-    matchup,
-    rebounds_per_game,
-    home_rebounds_per_game,
-    away_rebounds_per_game,
-    last_5_game_dates,
-    player_rebounds_in_last_5_games,
-    player_rebounds_against_opponent,
-    opponent_game_dates,
-    opponent_team_abbreviation,
-    rest_days,
-    player_metrics,
-    team_metrics,
-  } = data;
-
   return (
     <div>
       <div className="pt-10 px-10">

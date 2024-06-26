@@ -29,6 +29,7 @@ class Team(db.Model):
     team_city = db.Column(db.String(255))
     team_name = db.Column(db.String(255))
     team_abbreviation = db.Column(db.String(10))
+    colors = db.Column(db.JSON)
 
 class Game(db.Model):
     __tablename__ = 'game'

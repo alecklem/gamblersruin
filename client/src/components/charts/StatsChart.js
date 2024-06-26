@@ -40,7 +40,7 @@ const StatsChart = ({ data, label, title, dataLabel }) => {
   const options = {
     plugins: {
       legend: {
-        display: false, // Hide the legend
+        display: false,
       },
       datalabels: {
         display: true,
@@ -53,7 +53,6 @@ const StatsChart = ({ data, label, title, dataLabel }) => {
     },
     scales: {
       y: {
-        beginAtZero: true,
         ticks: {
           padding: 10, // Add padding to prevent values from getting cut off
         },
@@ -62,13 +61,6 @@ const StatsChart = ({ data, label, title, dataLabel }) => {
         ticks: {
           padding: 10, // Add padding to prevent values from getting cut off
         },
-      },
-    },
-    layout: {
-      padding: {
-        top: 20, // Add top padding
-        left: 20, // Add left padding
-        right: 10, // Reduce right padding
       },
     },
   };

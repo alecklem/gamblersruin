@@ -1,6 +1,6 @@
 from flask import current_app as app, jsonify, request
 from app import db
-from app.models import Player, Game, PlayerGameLog, PlayerEstimatedMetrics, TeamEstimatedMetrics
+from app.models import Player, Game, PlayerGameLog, PlayerEstimatedMetrics, TeamEstimatedMetrics, Team
 from datetime import datetime, timedelta
 from nba_api.stats.endpoints import playerestimatedmetrics, teamestimatedmetrics
 
@@ -81,13 +81,16 @@ def points():
             player_points_against_opponent = []
             opponent_game_dates = []
 
-# Fetch Player Estimated Metrics
+        # Fetch Player Estimated Metrics
         player_metrics = PlayerEstimatedMetrics.query.filter_by(player_id=player_id).first()
         player_metrics_filtered = player_metrics.metrics if player_metrics else {}
 
         # Fetch Opponent Defensive Rating
         team_metrics = TeamEstimatedMetrics.query.filter_by(team_id=opponent_team_id).first() if next_game_entry else None
         team_metrics_filtered = team_metrics.metrics if team_metrics else {}
+
+        player_team_colors = Team.query.filter_by(team_id=player_team_id).first().colors
+        opponent_team_colors = Team.query.filter_by(team_id=opponent_team_id).first().colors
 
         return jsonify({
             'team_abbreviation': player_team_abbreviation,
@@ -102,7 +105,9 @@ def points():
             'opponent_team_abbreviation': opponent_team_abbreviation,
             'matchup': f"{player_team_abbreviation} vs {opponent_team_abbreviation}" if opponent_team_abbreviation != "N/A" else "N/A",
             'player_metrics': player_metrics_filtered,
-            'team_metrics': team_metrics_filtered
+            'team_metrics': team_metrics_filtered,
+            "player_team_colors": player_team_colors,
+            "opponent_team_colors": opponent_team_colors
         })
     except Exception as e:
         app.logger.error(f"Error in /points route: {e}")
@@ -183,6 +188,9 @@ def assists():
         team_metrics = TeamEstimatedMetrics.query.filter_by(team_id=opponent_team_id).first() if next_game_entry else None
         team_metrics_filtered = team_metrics.metrics if team_metrics else {}
 
+        player_team_colors = Team.query.filter_by(team_id=player_team_id).first().colors
+        opponent_team_colors = Team.query.filter_by(team_id=opponent_team_id).first().colors
+
         return jsonify({
             'team_abbreviation': player_team_abbreviation,
             'assists_per_game': assists_per_game,
@@ -196,7 +204,9 @@ def assists():
             'opponent_team_abbreviation': opponent_team_abbreviation,
             'matchup': f"{player_team_abbreviation} vs {opponent_team_abbreviation}" if opponent_team_abbreviation != "N/A" else "N/A",
             'player_metrics': player_metrics_filtered,
-            'team_metrics': team_metrics_filtered
+            'team_metrics': team_metrics_filtered,
+            "player_team_colors": player_team_colors,
+            "opponent_team_colors": opponent_team_colors
         })
     except Exception as e:
         app.logger.error(f"Error in /assists route: {e}")
@@ -277,6 +287,9 @@ def rebounds():
         team_metrics = TeamEstimatedMetrics.query.filter_by(team_id=opponent_team_id).first() if next_game_entry else None
         team_metrics_filtered = team_metrics.metrics if team_metrics else {}
 
+        player_team_colors = Team.query.filter_by(team_id=player_team_id).first().colors
+        opponent_team_colors = Team.query.filter_by(team_id=opponent_team_id).first().colors
+
         return jsonify({
             'team_abbreviation': player_team_abbreviation,
             'rebounds_per_game': rebounds_per_game,
@@ -290,7 +303,9 @@ def rebounds():
             'opponent_team_abbreviation': opponent_team_abbreviation,
             'matchup': f"{player_team_abbreviation} vs {opponent_team_abbreviation}" if opponent_team_abbreviation != "N/A" else "N/A",
             'player_metrics': player_metrics_filtered,
-            'team_metrics': team_metrics_filtered
+            'team_metrics': team_metrics_filtered,
+            "player_team_colors": player_team_colors,
+            "opponent_team_colors": opponent_team_colors
         })
     except Exception as e:
         app.logger.error(f"Error in /rebounds route: {e}")
