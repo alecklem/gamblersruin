@@ -14,6 +14,7 @@ const PlayerList = () => {
   const [selectedStat, setSelectedStat] = useState("POINTS");
   const [playerData, setPlayerData] = useState(null);
   const [isPlayerDropdownVisible, setIsPlayerDropdownVisible] = useState(false);
+  const [betQuantity, setBetQuantity] = useState(15.5);
 
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -58,7 +59,12 @@ const PlayerList = () => {
         const response = await axios.post(route, {
           player: { id: selectedPlayer.person_id },
         });
-        setPlayerData({ ...response.data, playerId: selectedPlayer.person_id });
+        console.log(betQuantity);
+        setPlayerData({
+          ...response.data,
+          playerId: selectedPlayer.person_id,
+          betNumber: betQuantity,
+        });
       } catch (error) {
         console.error("Error saving data:", error);
       }
@@ -77,16 +83,23 @@ const PlayerList = () => {
     setSelectedPlayer(null);
   };
 
+  const handleBetQuantityChange = (event) => {
+    const betAmount = event.target.value;
+    setBetQuantity(betAmount);
+  };
+
   const renderDashboard = () => {
     if (!playerData) return null;
 
     switch (selectedStat) {
       case "POINTS":
-        return <PointsDashboard data={playerData} />;
+        return <PointsDashboard data={playerData} betQuantity={betQuantity} />;
       case "ASSISTS":
-        return <AssistsDashboard data={playerData} />;
+        return <AssistsDashboard data={playerData} betQuantity={betQuantity} />;
       case "REBOUNDS":
-        return <ReboundsDashboard data={playerData} />;
+        return (
+          <ReboundsDashboard data={playerData} betQuantity={betQuantity} />
+        );
       default:
         return null;
     }
@@ -110,13 +123,13 @@ const PlayerList = () => {
             )}
             <input
               type="text"
-              className="border rounded pl-3 w-96 h-12"
+              className="border rounded pl-3 w-60 h-12"
               placeholder="Search for a player"
               value={searchQuery}
               onChange={handleSearchQueryChange}
             />
             {isPlayerDropdownVisible && selectedPlayer == null && (
-              <ul className="player-dropdown absolute w-96 border border-gray-300 rounded mt-1 max-h-60 overflow-y-auto bg-white z-10">
+              <ul className="player-dropdown absolute w-60 border border-gray-300 rounded mt-1 max-h-60 overflow-y-auto bg-white z-10">
                 {filteredPlayers.map((player) => (
                   <li
                     key={player.id}
@@ -141,6 +154,13 @@ const PlayerList = () => {
               setSelectedStat={setSelectedStat}
             />
           </div>
+          <input
+            type="text"
+            placeholder="15.5"
+            className="border rounded pl-3 w-16"
+            value={betQuantity}
+            onChange={handleBetQuantityChange}
+          ></input>
           <button
             onClick={handleSave}
             className="bg-blue-500 text-white px-4 rounded"

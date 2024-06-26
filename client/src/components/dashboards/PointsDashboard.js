@@ -7,7 +7,7 @@ import StatsChart from "../charts/StatsChart";
 const PointsDashboard = ({ data }) => {
   const playerColors = data.player_team_colors;
   const opponentColors = data.opponent_team_colors;
-  console.log(data.team_metrics);
+  console.log(data.betNumber);
 
   const getTeamColorStyle = (colors) => {
     return {
@@ -59,6 +59,7 @@ const PointsDashboard = ({ data }) => {
             data={{
               dates: data.opponent_game_dates,
               value: data.player_points_against_opponent,
+              betNumber: data.betNumber,
             }}
             label="Points"
             title={`Points against ${data.opponent_team_abbreviation}`}
@@ -70,6 +71,7 @@ const PointsDashboard = ({ data }) => {
             data={{
               dates: data.last_5_game_dates,
               value: data.player_points_in_last_5_games,
+              betNumber: data.betNumber,
             }}
             label="Points"
             title="L5 PPG"

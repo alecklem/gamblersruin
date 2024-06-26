@@ -30,7 +30,7 @@ def points():
             app.logger.error("Player ID not provided")
             return jsonify({'error': 'Player ID not provided'}), 400
 
-        player_id = str(player_id)  # Ensure player_id is a string
+        player_id = str(player_id)
 
         player = Player.query.filter_by(person_id=player_id).first()
         if not player:
