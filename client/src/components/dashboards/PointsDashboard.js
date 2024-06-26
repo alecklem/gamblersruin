@@ -59,6 +59,8 @@ const PointsDashboard = ({ data }) => {
               dates: data.opponent_game_dates,
               value: data.player_points_against_opponent,
               betNumber: data.betNumber,
+              player_team_colors: data.player_team_colors,
+              opponent_team_colors: data.opponent_team_colors,
             }}
             label="Points"
             title={`Points against ${data.opponent_team_abbreviation}`}
@@ -71,6 +73,8 @@ const PointsDashboard = ({ data }) => {
               dates: data.last_5_game_dates,
               value: data.player_points_in_last_5_games,
               betNumber: data.betNumber,
+              player_team_colors: data.player_team_colors,
+              opponent_team_colors: data.opponent_team_colors,
             }}
             label="Points"
             title="L5 PPG"

@@ -61,6 +61,8 @@ const ReboundsDashboard = ({ data }) => {
                 dates: data.opponent_game_dates,
                 value: data.player_rebounds_against_opponent,
                 betNumber: data.betNumber,
+                player_team_colors: data.player_team_colors,
+                opponent_team_colors: data.opponent_team_colors,
               }}
               label="Rebounds"
               title={`Rebounds against ${data.opponent_team_abbreviation}`}
@@ -73,6 +75,8 @@ const ReboundsDashboard = ({ data }) => {
                 dates: data.last_5_game_dates,
                 value: data.player_rebounds_in_last_5_games,
                 betNumber: data.betNumber,
+                player_team_colors: data.player_team_colors,
+                opponent_team_colors: data.opponent_team_colors,
               }}
               label="Rebounds"
               title="L5 RPG"

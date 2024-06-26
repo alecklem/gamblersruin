@@ -23,6 +23,18 @@ ChartJS.register(
   ChartDataLabels
 );
 
+const getContrastingColor = (rgb) => {
+  const [r, g, b] = rgb.match(/\d+/g).map(Number);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 125 ? "black" : "white";
+};
+
+// Function to convert RGB to RGBA with the given opacity
+const rgbToRgba = (rgb, opacity) => {
+  const [r, g, b] = rgb.match(/\d+/g).map(Number);
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+};
+
 const StatsChart = ({ data, label, title, dataLabel }) => {
   const betAmount = data.betNumber;
   const betArray = [];
@@ -30,8 +42,18 @@ const StatsChart = ({ data, label, title, dataLabel }) => {
     betArray.push(betAmount);
   }
 
+  const primaryColor = data.player_team_colors[0];
+  const secondaryColor = data.player_team_colors[1];
+  const contrastingTextColor = getContrastingColor(secondaryColor);
+
+  console.log(data.player_team_colors);
+
   // Determine max value for y-axis
   const maxValue = Math.max(...data.value);
+
+  // Set the opacity level here (0 to 1)
+  const opacityLevel = 0.85; // 80% opacity
+  const backgroundColorWithOpacity = rgbToRgba(secondaryColor, opacityLevel);
 
   const chartData = {
     labels: data.dates.reverse(), // Reverse to make the dates from farthest to closest
@@ -40,8 +62,8 @@ const StatsChart = ({ data, label, title, dataLabel }) => {
         label: dataLabel,
         data: data.value.reverse(), // Reverse to match the order of dates
         fill: false,
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-        borderColor: "rgba(75, 192, 192, 1)",
+        backgroundColor: primaryColor,
+        borderColor: primaryColor,
         borderWidth: 3, // Adjust the thickness of the green line here
       },
       {
@@ -80,7 +102,7 @@ const StatsChart = ({ data, label, title, dataLabel }) => {
       },
       datalabels: {
         display: true,
-        color: "black",
+        color: contrastingTextColor,
         align: "top",
         borderRadius: 3,
         padding: 6,
@@ -102,6 +124,7 @@ const StatsChart = ({ data, label, title, dataLabel }) => {
       y: {
         ticks: {
           padding: 10, // Add padding to prevent values from getting cut off
+          color: contrastingTextColor,
         },
         beginAtZero: false,
         suggestedMax: maxValue + 1, // Adds extra space above the highest data point
@@ -109,6 +132,7 @@ const StatsChart = ({ data, label, title, dataLabel }) => {
       x: {
         ticks: {
           padding: 10, // Add padding to prevent values from getting cut off
+          color: contrastingTextColor,
         },
       },
     },
@@ -124,7 +148,13 @@ const StatsChart = ({ data, label, title, dataLabel }) => {
   };
 
   return (
-    <div className="bg-white shadow rounded p-4">
+    <div
+      className="shadow rounded p-4"
+      style={{
+        backgroundColor: backgroundColorWithOpacity,
+        color: contrastingTextColor,
+      }} // Lower the opacity and set text color
+    >
       <h2 className="text-xl font-bold mb-2">{title}</h2>
       <Line data={chartData} options={options} />
     </div>
