@@ -1,4 +1,3 @@
-# flask-server/app/models.py
 from app import db
 
 class Player(db.Model):
@@ -96,7 +95,6 @@ class PlayerGameLog(db.Model):
     video_available = db.Column(db.Boolean)
     is_home_game = db.Column(db.Boolean, nullable=False)
 
-
 class PlayerEstimatedMetrics(db.Model):
     __tablename__ = 'player_estimated_metrics'
     id = db.Column(db.Integer, primary_key=True)
@@ -108,3 +106,124 @@ class TeamEstimatedMetrics(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
     metrics = db.Column(db.JSON, nullable=False)  # Assuming metrics are stored in JSON format
+
+class Cumestats(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    season_id = db.Column(db.String(10), nullable=False)
+    games_played = db.Column(db.Integer)
+    games_started = db.Column(db.Integer)
+    actual_minutes = db.Column(db.Integer)
+    actual_seconds = db.Column(db.Integer)
+    fg = db.Column(db.Integer)
+    fga = db.Column(db.Integer)
+    fg_pct = db.Column(db.Float)
+    fg3 = db.Column(db.Integer)
+    fg3a = db.Column(db.Integer)
+    fg3_pct = db.Column(db.Float)
+    ft = db.Column(db.Integer)
+    fta = db.Column(db.Integer)
+    ft_pct = db.Column(db.Float)
+    off_reb = db.Column(db.Integer)
+    def_reb = db.Column(db.Integer)
+    tot_reb = db.Column(db.Integer)
+    ast = db.Column(db.Integer)
+    pf = db.Column(db.Integer)
+    dq = db.Column(db.Integer)
+    stl = db.Column(db.Integer)
+    turnovers = db.Column(db.Integer)
+    blk = db.Column(db.Integer)
+    pts = db.Column(db.Integer)
+    max_actual_minutes = db.Column(db.Integer)
+    max_actual_seconds = db.Column(db.Integer)
+    max_reb = db.Column(db.Integer)
+    max_ast = db.Column(db.Integer)
+    max_stl = db.Column(db.Integer)
+    max_turnovers = db.Column(db.Integer)
+    max_blk = db.Column(db.Integer)
+    max_pts = db.Column(db.Integer)
+    avg_actual_minutes = db.Column(db.Float)
+    avg_actual_seconds = db.Column(db.Float)
+    avg_tot_reb = db.Column(db.Float)
+    avg_ast = db.Column(db.Float)
+    avg_stl = db.Column(db.Float)
+    avg_turnovers = db.Column(db.Float)
+    avg_blk = db.Column(db.Float)
+    avg_pts = db.Column(db.Float)
+    per_min_tot_reb = db.Column(db.Float)
+    per_min_ast = db.Column(db.Float)
+    per_min_stl = db.Column(db.Float)
+    per_min_turnovers = db.Column(db.Float)
+    per_min_blk = db.Column(db.Float)
+    per_min_pts = db.Column(db.Float)
+
+class Playerdshptpass(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    season_id = db.Column(db.String(10), nullable=False)
+    passes_made = db.Column(db.Integer)
+    passes_received = db.Column(db.Integer)
+    assists = db.Column(db.Integer)
+    secondary_assists = db.Column(db.Integer)
+    potential_assists = db.Column(db.Integer)
+
+class Playerdshptreb(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    season_id = db.Column(db.String(10), nullable=False)
+    offensive_rebounds = db.Column(db.Integer)
+    defensive_rebounds = db.Column(db.Integer)
+    total_rebounds = db.Column(db.Integer)
+
+class Playerdshptdefend(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    season_id = db.Column(db.String(10), nullable=False)
+    close_def_person_id = db.Column(db.Integer)
+    gp = db.Column(db.Integer)
+    g = db.Column(db.Integer)
+    defense_category = db.Column(db.String(50))
+    freq = db.Column(db.Float)
+    d_fgm = db.Column(db.Integer)
+    d_fga = db.Column(db.Integer)
+    d_fg_pct = db.Column(db.Float)
+    normal_fg_pct = db.Column(db.Float)
+    pct_plusminus = db.Column(db.Float)
+
+
+class Playerdshptshots(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    season_id = db.Column(db.String(10), nullable=False)
+    shot_type = db.Column(db.String(50))
+    shot_zone = db.Column(db.String(50))
+    fgm = db.Column(db.Integer)
+    fga = db.Column(db.Integer)
+    fg_pct = db.Column(db.Float)
+
+class Shotchartdetail(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    game_id = db.Column(db.String(50), nullable=False)
+    team_id = db.Column(db.String(50), nullable=False)
+    shot_attempted_flag = db.Column(db.Integer)
+    shot_made_flag = db.Column(db.Integer)
+    shot_zone_basic = db.Column(db.String(50))
+    shot_zone_area = db.Column(db.String(50))
+    shot_zone_range = db.Column(db.String(50))
+    shot_distance = db.Column(db.Integer)
+    loc_x = db.Column(db.Integer)
+    loc_y = db.Column(db.Integer)
+    shot_attempted_date = db.Column(db.Date)
+    
+    __table_args__ = (db.UniqueConstraint('game_id', 'team_id', name='unique_game_team_shot'),)
+
+class Synergyplaytypes(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    play_type = db.Column(db.String(50), nullable=False)
+    possession = db.Column(db.Integer)
+    points = db.Column(db.Integer)
+    field_goals_made = db.Column(db.Integer)
+    field_goals_attempted = db.Column(db.Integer)
+    points_per_possession = db.Column(db.Float)

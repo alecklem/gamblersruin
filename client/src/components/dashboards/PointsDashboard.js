@@ -56,8 +56,8 @@ const PointsDashboard = ({ data }) => {
   );
 
   return (
-    <div className="pt-10 px-10">
-      <div className="w-full grid grid-flow-column-dense grid-cols-5 grid-rows-9 gap-6">
+    <div className="md:pt-10 md:px-10 pl-1.5 pt-5">
+      <div className="w-full grid grid-flow-column-dense lg:grid-cols-5 lg:grid-rows-9 sm:grid-cols-2 sm:grid-rows-20 md:grid-cols-5 md:grid-rows-9 gap-6">
         <div className="bg-white shadow rounded flex items-center justify-center h-24">
           <h2 className="text-xl font-bold text-center">
             <span style={getTeamColorStyle(playerColors)}>

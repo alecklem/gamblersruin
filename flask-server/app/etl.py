@@ -1,17 +1,23 @@
-# flask-server/app/etl.py
 import sys
 import os
 import requests
 import logging
-from nba_api.stats.endpoints import (playerindex, leaguegamelog, playergamelog, playerdashboardbygeneralsplits, 
-                                     commonteamyears, boxscoretraditionalv2, leaguegamefinder, playerestimatedmetrics, teamestimatedmetrics)
-
+from nba_api.stats.endpoints import (
+    playerindex, leaguegamelog, playergamelog, playerdashboardbygeneralsplits, 
+    commonteamyears, boxscoretraditionalv2, leaguegamefinder, playerestimatedmetrics, 
+    teamestimatedmetrics, cumestatsplayer, playerdashptpass, playerdashptreb, playerdashptshotdefend,
+    playerdashptshots, shotchartdetail, synergyplaytypes
+)
 # Add the flask-server directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'flask-server')))
 
 from app import db, create_app
-from app.models import Player, Team, Game, PlayerGameLog, PlayerEstimatedMetrics, TeamEstimatedMetrics
+from app.models import (
+    Player, Team, Game, PlayerGameLog, PlayerEstimatedMetrics, 
+    TeamEstimatedMetrics, Cumestats, Playerdshptpass, Playerdshptreb, 
+    Playerdshptdefend, Playerdshptshots, Shotchartdetail, Synergyplaytypes
+)
 from sqlalchemy.exc import IntegrityError
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from datetime import datetime
@@ -22,334 +28,305 @@ logger = logging.getLogger(__name__)
 
 app = create_app()
 
-def load_players():
-    logger.info("Starting to load players...")
-    player_index = playerindex.PlayerIndex().get_normalized_dict()
-    players = player_index['PlayerIndex']
-
-    for player in players:
-        try:
-            existing_player = Player.query.filter_by(person_id=player['PERSON_ID']).first()
-            if existing_player:
-                logger.info(f"Player already exists: {player['PLAYER_FIRST_NAME']} {player['PLAYER_LAST_NAME']}")
-                continue
-            
-            player_dashboard = playerdashboardbygeneralsplits.PlayerDashboardByGeneralSplits(player_id=player['PERSON_ID'], season="2023-24").get_normalized_dict()
-            season_avg = player_dashboard['OverallPlayerDashboard'][0] if player_dashboard['OverallPlayerDashboard'] else {}
-
-            db_player = Player(
-                person_id=player['PERSON_ID'],
-                last_name=player['PLAYER_LAST_NAME'],
-                first_name=player['PLAYER_FIRST_NAME'],
-                team_id=player['TEAM_ID'],
-                team_abbreviation=player['TEAM_ABBREVIATION'],
-                position=player['POSITION'],
-                height=player['HEIGHT'],
-                weight=player['WEIGHT'],
-                college=player['COLLEGE'],
-                country=player['COUNTRY'],
-                draft_year=player['DRAFT_YEAR'],
-                draft_round=player['DRAFT_ROUND'],
-                draft_number=player['DRAFT_NUMBER'],
-                pts=player['PTS'],
-                reb=player['REB'],
-                ast=player['AST'],
-                season_avg_pts=season_avg.get('PTS', 0),
-                season_avg_reb=season_avg.get('REB', 0),
-                season_avg_ast=season_avg.get('AST', 0)
-            )
-            db.session.merge(db_player)
-            db.session.commit()
-            logger.info(f"Loaded player: {player['PLAYER_FIRST_NAME']} {player['PLAYER_LAST_NAME']}")
-        except IntegrityError:
-            db.session.rollback()
-            logger.error(f"Error loading player: {player['PLAYER_FIRST_NAME']} {player['PLAYER_LAST_NAME']}")
-
-def load_teams():
-    logger.info("Starting to load teams...")
-    team_years = commonteamyears.CommonTeamYears().get_normalized_dict()
-    teams = team_years['TeamYears']
+@retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=4, max=10), retry=retry_if_exception_type(requests.exceptions.RequestException))
+def fetch_and_insert_data(endpoint, model, column_mapping, params=None, additional_params=None):
+    if params is None:
+        params = {}
+    if additional_params is None:
+        additional_params = {}
     
-    for team in teams:
-        try:
-            existing_team = Team.query.filter_by(team_id=team['TEAM_ID']).first()
-            if existing_team:
-                logger.info(f"Team already exists: {team['ABBREVIATION']}")
-                continue
+    data = endpoint(**params, **additional_params).get_data_frames()[0]
 
-            db_team = Team(
-                team_id=team['TEAM_ID'],
-                team_city=team['TEAM_CITY'],
-                team_name=team['TEAM_NAME'],
-                team_abbreviation=team['ABBREVIATION']
-            )
-            db.session.merge(db_team)
+    with app.app_context():
+        for row in data.to_dict('records'):
+            mapped_row = {model_column: row[api_column] for model_column, api_column in column_mapping.items()}
+            db_entry = model(**mapped_row)
+            db.session.merge(db_entry)
             db.session.commit()
-            logger.info(f"Loaded team: {team['TEAM_NAME']}")
-        except IntegrityError:
-            db.session.rollback()
-            logger.error(f"Error loading team: {team['TEAM_NAME']}")
+            logger.info(f"Inserted row for {model.__name__}: {mapped_row}")
 
-def load_games():
-    logger.info("Starting to load games...")
-    game_log = leaguegamelog.LeagueGameLog(season="2023-24").get_normalized_dict()
-    games = game_log['LeagueGameLog']
-
-    for game in games:
-        try:
-            # Fetch the box score for the game to get the team stats
-            box_score = boxscoretraditionalv2.BoxScoreTraditionalV2(game_id=game['GAME_ID']).get_normalized_dict()
-
-            if 'TeamStats' not in box_score:
-                logger.error(f"KeyError: 'TeamStats' in game log for game: {game['GAME_ID']}")
-                continue
-
-            team_stats = box_score['TeamStats']
-
-            for team_stat in team_stats:
-                db_game = Game.query.filter_by(game_id=team_stat['GAME_ID'], team_id=str(team_stat['TEAM_ID'])).first()
-                
-                # Transform the min field to fit the length and format to two decimal places
-                formatted_min = team_stat['MIN'][:6]
-
-                transformed_team_name = team_stat['TEAM_NAME'][:100] if len(team_stat['TEAM_NAME']) > 100 else team_stat['TEAM_NAME']
-                transformed_team_city = team_stat['TEAM_CITY'][:100] if len(team_stat['TEAM_CITY']) > 100 else team_stat['TEAM_CITY']
-
-                if db_game:
-                    db_game.team_name = transformed_team_name
-                    db_game.team_abbreviation = team_stat['TEAM_ABBREVIATION']
-                    db_game.team_city = transformed_team_city
-                    db_game.min = formatted_min
-                    db_game.fgm = team_stat['FGM']
-                    db_game.fga = team_stat['FGA']
-                    db_game.fg_pct = team_stat['FG_PCT']
-                    db_game.fg3m = team_stat['FG3M']
-                    db_game.fg3a = team_stat['FG3A']
-                    db_game.fg3_pct = team_stat['FG3_PCT']
-                    db_game.ftm = team_stat['FTM']
-                    db_game.fta = team_stat['FTA']
-                    db_game.ft_pct = team_stat['FT_PCT']
-                    db_game.oreb = team_stat['OREB']
-                    db_game.dreb = team_stat['DREB']
-                    db_game.reb = team_stat['REB']
-                    db_game.ast = team_stat['AST']
-                    db_game.stl = team_stat['STL']
-                    db_game.blk = team_stat['BLK']
-                    db_game.to = team_stat['TO']
-                    db_game.pf = team_stat['PF']
-                    db_game.pts = team_stat['PTS']
-                    db_game.plus_minus = team_stat['PLUS_MINUS']
-                else:
-                    db_game = Game(
-                        game_id=team_stat['GAME_ID'],
-                        team_id=str(team_stat['TEAM_ID']),
-                        team_name=transformed_team_name,
-                        team_abbreviation=team_stat['TEAM_ABBREVIATION'],
-                        team_city=transformed_team_city,
-                        min=formatted_min,
-                        fgm=team_stat['FGM'],
-                        fga=team_stat['FGA'],
-                        fg_pct=team_stat['FG_PCT'],
-                        fg3m=team_stat['FG3M'],
-                        fg3a=team_stat['FG3A'],
-                        fg3_pct=team_stat['FG3_PCT'],
-                        ftm=team_stat['FTM'],
-                        fta=team_stat['FTA'],
-                        ft_pct=team_stat['FT_PCT'],
-                        oreb=team_stat['OREB'],
-                        dreb=team_stat['DREB'],
-                        reb=team_stat['REB'],
-                        ast=team_stat['AST'],
-                        stl=team_stat['STL'],
-                        blk=team_stat['BLK'],
-                        to=team_stat['TO'],
-                        pf=team_stat['PF'],
-                        pts=team_stat['PTS'],
-                        plus_minus=team_stat['PLUS_MINUS']
-                    )
-
-                db.session.merge(db_game)
-                db.session.commit()
-                logger.info(f"Loaded game stats for game: {team_stat['GAME_ID']} and team: {team_stat['TEAM_ABBREVIATION']}")
-        except IntegrityError:
-            db.session.rollback()
-            logger.error(f"Error loading game stats for game: {game['GAME_ID']}")
-        except KeyError as e:
-            logger.error(f"KeyError: {e} in game log for game: {game['GAME_ID']}")
-        except ValueError as e:
-            logger.error(f"ValueError: {e} in game log for game: {game['GAME_ID']}")
-
-@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10), retry=retry_if_exception_type(requests.exceptions.RequestException))
-def fetch_player_game_log(player_id):
-    return playergamelog.PlayerGameLog(player_id=player_id, season="2023-24").get_normalized_dict()
-
-def load_player_game_logs():
-    logger.info("Starting to load player game logs...")
+@retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=4, max=10), retry=retry_if_exception_type(requests.exceptions.RequestException))
+def load_cumestats():
+    logger.info("Starting to load cumulative stats...")
+    
     players = Player.query.all()
     
     for player in players:
         try:
-            game_logs = fetch_player_game_log(player.person_id)
-            player_games = game_logs['PlayerGameLog']
-            
-            for game in player_games:
-                existing_log = PlayerGameLog.query.filter_by(game_id=game['Game_ID'], player_id=str(player.person_id)).first()
+            # Fetch all game IDs for the player from PlayerGameLog
+            game_logs = PlayerGameLog.query.filter_by(player_id=str(player.person_id)).all()
+            game_ids = [log.game_id for log in game_logs]
 
-                is_home_game = not game['MATCHUP'].startswith('@')
-                game_date = datetime.strptime(game['GAME_DATE'], '%b %d, %Y').date()
-                if existing_log:
-                    # Update the existing log with additional information
-                    existing_log.season_id = game['SEASON_ID']
-                    existing_log.game_date = game_date
-                    existing_log.matchup = game['MATCHUP']
-                    existing_log.wl = game['WL']
-                    existing_log.minutes = game['MIN']
-                    existing_log.fgm = game['FGM']
-                    existing_log.fga = game['FGA']
-                    existing_log.fg_pct = game['FG_PCT']
-                    existing_log.fg3m = game['FG3M']
-                    existing_log.fg3a = game['FG3A']
-                    existing_log.fg3_pct = game['FG3_PCT']
-                    existing_log.ftm = game['FTM']
-                    existing_log.fta = game['FTA']
-                    existing_log.ft_pct = game['FT_PCT']
-                    existing_log.oreb = game['OREB']
-                    existing_log.dreb = game['DREB']
-                    existing_log.rebounds = game['REB']
-                    existing_log.assists = game['AST']
-                    existing_log.stl = game['STL']
-                    existing_log.blk = game['BLK']
-                    existing_log.tov = game['TOV']
-                    existing_log.pf = game['PF']
-                    existing_log.points = game['PTS']
-                    existing_log.plus_minus = game['PLUS_MINUS']
-                    existing_log.video_available = game['VIDEO_AVAILABLE'] == 1
-                    existing_log.is_home_game = is_home_game
-                else:
-                    db_player_game_log = PlayerGameLog(
-                        game_id=game['Game_ID'],
-                        player_id=str(player.person_id),
-                        season_id=game['SEASON_ID'],
-                        game_date=game_date,
-                        matchup=game['MATCHUP'],
-                        wl=game['WL'],
-                        minutes=game['MIN'],
-                        fgm=game['FGM'],
-                        fga=game['FGA'],
-                        fg_pct=game['FG_PCT'],
-                        fg3m=game['FG3M'],
-                        fg3a=game['FG3A'],
-                        fg3_pct=game['FG3_PCT'],
-                        ftm=game['FTM'],
-                        fta=game['FTA'],
-                        ft_pct=game['FT_PCT'],
-                        oreb=game['OREB'],
-                        dreb=game['DREB'],
-                        rebounds=game['REB'],
-                        assists=game['AST'],
-                        stl=game['STL'],
-                        blk=game['BLK'],
-                        tov=game['TOV'],
-                        pf=game['PF'],
-                        points=game['PTS'],
-                        plus_minus=game['PLUS_MINUS'],
-                        video_available=game['VIDEO_AVAILABLE'] == 1,
-                        is_home_game=is_home_game
-                    )
-                    db.session.add(db_player_game_log)
-            db.session.commit()
-            logger.info(f"Loaded game logs for player: {player.first_name} {player.last_name}")
+            if not game_ids:
+                logger.warning(f"No game IDs found for player {player.person_id}")
+                continue
+            
+            # Fetch cumulative stats for each player
+            response = cumestatsplayer.CumeStatsPlayer(player_id=player.person_id, game_ids=game_ids).get_data_frames()[1]  # Use index 1 for total_player_stats
+            
+            # Debug: print the keys of the first row in the response
+            if not response.empty:
+                logger.debug(f"Response keys for player {player.person_id}: {response.columns.tolist()}")
+            else:
+                logger.warning(f"Empty response for player {player.person_id}")
+                continue
+
+            for row in response.to_dict('records'):
+                db_entry = Cumestats(
+                    player_id=row.get('PERSON_ID', player.person_id),
+                    season_id=row.get('SEASON_ID', ''),
+                    games_played=row.get('GP', None),
+                    games_started=row.get('GS', None),
+                    actual_minutes=row.get('ACTUAL_MINUTES', None),
+                    actual_seconds=row.get('ACTUAL_SECONDS', None),
+                    fg=row.get('FG', None),
+                    fga=row.get('FGA', None),
+                    fg_pct=row.get('FG_PCT', None),
+                    fg3=row.get('FG3', None),
+                    fg3a=row.get('FG3A', None),
+                    fg3_pct=row.get('FG3_PCT', None),
+                    ft=row.get('FT', None),
+                    fta=row.get('FTA', None),
+                    ft_pct=row.get('FT_PCT', None),
+                    off_reb=row.get('OFF_REB', None),
+                    def_reb=row.get('DEF_REB', None),
+                    tot_reb=row.get('TOT_REB', None),
+                    ast=row.get('AST', None),
+                    pf=row.get('PF', None),
+                    dq=row.get('DQ', None),
+                    stl=row.get('STL', None),
+                    turnovers=row.get('TURNOVERS', None),
+                    blk=row.get('BLK', None),
+                    pts=row.get('PTS', None),
+                    max_actual_minutes=row.get('MAX_ACTUAL_MINUTES', None),
+                    max_actual_seconds=row.get('MAX_ACTUAL_SECONDS', None),
+                    max_reb=row.get('MAX_REB', None),
+                    max_ast=row.get('MAX_AST', None),
+                    max_stl=row.get('MAX_STL', None),
+                    max_turnovers=row.get('MAX_TURNOVERS', None),
+                    max_blk=row.get('MAX_BLK', None),
+                    max_pts=row.get('MAX_PTS', None),
+                    avg_actual_minutes=row.get('AVG_ACTUAL_MINUTES', None),
+                    avg_actual_seconds=row.get('AVG_ACTUAL_SECONDS', None),
+                    avg_tot_reb=row.get('AVG_TOT_REB', None),
+                    avg_ast=row.get('AVG_AST', None),
+                    avg_stl=row.get('AVG_STL', None),
+                    avg_turnovers=row.get('AVG_TURNOVERS', None),
+                    avg_blk=row.get('AVG_BLK', None),
+                    avg_pts=row.get('AVG_PTS', None),
+                    per_min_tot_reb=row.get('PER_MIN_TOT_REB', None),
+                    per_min_ast=row.get('PER_MIN_AST', None),
+                    per_min_stl=row.get('PER_MIN_STL', None),
+                    per_min_turnovers=row.get('PER_MIN_TURNOVERS', None),
+                    per_min_blk=row.get('PER_MIN_BLK', None),
+                    per_min_pts=row.get('PER_MIN_PTS', None)
+                )
+                db.session.merge(db_entry)
+                db.session.commit()
+                logger.info(f"Inserted row for Cumestats: {db_entry}")
         except IntegrityError:
             db.session.rollback()
-            logger.error(f"Error loading game logs for player: {player.first_name} {player.last_name}")
-        except KeyError as e:
-            logger.error(f"KeyError: {e} in game log for player: {player.first_name} {player.last_name}")
-        except requests.exceptions.RequestException as e:
-            logger.error(f"RequestException: {e} when fetching game logs for player: {player.first_name} {player.last_name}")
+            logger.error(f"Integrity error for player {player.person_id}")
+        except Exception as e:
+            logger.error(f"Error loading cumulative stats for player {player.person_id}: {e}")
 
-def update_game_dates():
-    gamefinder = leaguegamefinder.LeagueGameFinder()
-    games_dict = gamefinder.get_dict()
 
-    with app.app_context():
-        for game in games_dict['resultSets'][0]['rowSet']:
-            game_id = game[4]  # Adjusted index for GAME_ID
-            game_date_str = game[5]  # Adjusted index for GAME_DATE
-            print(f"Game ID: {game_id}, Game Date String: {game_date_str}, Full Game Data: {game}")  # Print the full game data for inspection
 
-            try:
-                game_date = datetime.strptime(game_date_str, '%Y-%m-%d').date()
-            except ValueError as e:
-                print(f"Error parsing date: {e}")
-                continue  # Skip this record if the date is invalid
+def load_playerdshptpass():
+    logger.info("Starting to load player dashboard pass stats...")
+    column_mapping = {
+        'player_id': 'PLAYER_ID',
+        'season_id': 'SEASON_ID',
+        'passes_made': 'PASSES_MADE',
+        'passes_received': 'PASSES_RECEIVED',
+        'assists': 'ASSISTS',
+        'secondary_assists': 'SECONDARY_ASSISTS',
+        'potential_assists': 'POTENTIAL_ASSISTS'
+    }
 
-            home_team_id = game[1]  # Adjusted index for TEAM_ID
-            away_team_id = None  # Assuming away team ID can be found or is not needed for this context
+    players = Player.query.all()
+    for player in players:
+        try:
+            params = {'team_id': player.team_id, 'player_id': player.person_id}
+            fetch_and_insert_data(playerdashptpass.PlayerDashPtPass, Playerdshptpass, column_mapping, params)
+        except Exception as e:
+            logger.error(f"Error loading player dashboard pass stats for player {player.person_id}: {e}")
 
-            # Update or insert game date for home team
-            game_home = Game.query.filter_by(game_id=game_id, team_id=str(home_team_id)).first()
-            if game_home:
-                game_home.game_date = game_date
-                db.session.add(game_home)
+def load_playerdshptreb():
+    logger.info("Starting to load player dashboard rebound stats...")
+    column_mapping = {
+        'player_id': 'PLAYER_ID',
+        'season_id': 'SEASON_ID',
+        'offensive_rebounds': 'OREB',
+        'defensive_rebounds': 'DREB',
+        'total_rebounds': 'REB'
+    }
 
-            # Update or insert game date for away team if needed
-            if away_team_id:
-                game_away = Game.query.filter_by(game_id=game_id, team_id=str(away_team_id)).first()
-                if game_away:
-                    game_away.game_date = game_date
-                    db.session.add(game_away)
+    players = Player.query.all()
+    for player in players:
+        try:
+            params = {'team_id': player.team_id, 'player_id': player.person_id}
+            fetch_and_insert_data(playerdashptreb.PlayerDashPtReb, Playerdshptreb, column_mapping, params)
+        except Exception as e:
+            logger.error(f"Error loading player dashboard rebound stats for player {player.person_id}: {e}")
 
-        db.session.commit()
 
-def update_is_home_game():
-    with app.app_context():
-        game_logs = PlayerGameLog.query.all()
+@retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=4, max=10), retry=retry_if_exception_type(requests.exceptions.RequestException))
+def fetch_data_with_retry(params):
+    try:
+        return playerdashptshotdefend.PlayerDashPtShotDefend(**params, timeout=60).get_data_frames()[0]
+    except Exception as e:
+        logger.error(f"Error fetching data for params {params}: {e}")
+        raise
 
-        for log in game_logs:
-            if ' vs. ' in log.matchup:
-                log.is_home_game = True
-            elif ' @ ' in log.matchup:
-                log.is_home_game = False
-            else:
-                print(f"Unexpected matchup format: {log.matchup}")
 
-            db.session.add(log)
-        
-        db.session.commit()
+@retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=4, max=10), retry=retry_if_exception_type(requests.exceptions.RequestException))
+def load_playerdshptdefend():
+    logger.info("Starting to load player dashboard defend stats...")
 
-def fetch_and_store_player_estimated_metrics():
-    player_metrics_response = playerestimatedmetrics.PlayerEstimatedMetrics()
-    player_metrics = player_metrics_response.get_dict()
+    column_mapping = {
+        'player_id': 'PLAYER_ID',
+        'season_id': 'SEASON_ID',
+        'close_def_person_id': 'CLOSE_DEF_PLAYER_ID',
+        'gp': 'GP',
+        'g': 'G',
+        'defense_category': 'DEFENSE_CATEGORY',
+        'freq': 'FREQ',
+        'd_fgm': 'D_FGM',
+        'd_fga': 'D_FGA',
+        'd_fg_pct': 'D_FG_PCT',
+        'normal_fg_pct': 'NORMAL_FG_PCT',
+        'pct_plusminus': 'PCT_PLUSMINUS'
+    }
+    current_season_id = "2023-24"
 
-    for player in player_metrics['resultSet']['rowSet']:
-        player_id = player[0]  # Adjust the index based on the actual data structure
-        metrics = {key: value for key, value in zip(player_metrics['resultSet']['headers'], player)}
+    players = Player.query.all()
+    for player in players:
+        try:
+            params = {
+                'player_id': player.person_id,
+                'team_id': player.team_id,
+                'season': current_season_id,
+                'per_mode_simple': 'Totals',
+                'season_type_all_star': 'Regular Season'
+            }
+            data = fetch_data_with_retry(params)
+            
+            # Ensure the PLAYER_ID and CLOSE_DEF_PLAYER_ID columns are present
+            if 'PLAYER_ID' not in data.columns:
+                data['PLAYER_ID'] = player.person_id
+            if 'CLOSE_DEF_PLAYER_ID' not in data.columns:
+                data['CLOSE_DEF_PLAYER_ID'] = data['PLAYER_ID']
 
-        existing_record = PlayerEstimatedMetrics.query.filter_by(player_id=player_id).first()
-        if existing_record:
-            existing_record.metrics = metrics
-        else:
-            new_record = PlayerEstimatedMetrics(player_id=player_id, metrics=metrics)
-            db.session.add(new_record)
+            # Add SEASON_ID column
+            data['SEASON_ID'] = current_season_id
 
-    db.session.commit()
+            # Debug: log the data received
+            logger.debug(f"Data for player {player.person_id}: {data.head()}")
 
-def fetch_and_store_team_estimated_metrics():
-    team_metrics_response = teamestimatedmetrics.TeamEstimatedMetrics()
-    team_metrics = team_metrics_response.get_dict()
+            with app.app_context():
+                for row in data.to_dict('records'):
+                    row['SEASON_ID'] = current_season_id
+                    row['PLAYER_ID'] = player.person_id  # Ensure player_id is set
 
-    for team in team_metrics['resultSet']['rowSet']:
-        team_id = team[1]  # Adjust the index based on the actual data structure
-        metrics = {key: value for key, value in zip(team_metrics['resultSet']['headers'], team)}
+                    # Debug: log each row before mapping
+                    logger.debug(f"Row before mapping: {row}")
+                    mapped_row = {model_column: row.get(api_column) for model_column, api_column in column_mapping.items()}
+                    # Ensure mandatory fields are present
+                    if not mapped_row['player_id'] or not mapped_row['season_id']:
+                        logger.error(f"Missing player_id or season_id in row: {row}")
+                        continue
 
-        existing_record = TeamEstimatedMetrics.query.filter_by(team_id=team_id).first()
-        if existing_record:
-            existing_record.metrics = metrics
-        else:
-            new_record = TeamEstimatedMetrics(team_id=team_id, metrics=metrics)
-            db.session.add(new_record)
+                    # print(mapped_row['d_fgm'])
 
-    db.session.commit()
+                    # if mapped_row['freq'] == 'nan':
+                    #     mapped_row['freq'] = 0
+                    # if mapped_row['d_fgm'] == 'nan':
+                    #     mapped_row['d_fgm'] = 0
+                    # if mapped_row['d_fga'] == 'nan':
+                    #     mapped_row['d_fga'] = 0
+                    # if mapped_row['d_fg_pct'] == 'nan':
+                    #     mapped_row['d_fg_pct'] = 0
+                    # if mapped_row['pct_plusminus'] == 'nan':
+                    #     mapped_row['pct_plusminus'] = 0
+
+                    # Debug: log each mapped row
+                    logger.debug(f"Mapped row: {mapped_row}")
+                    db_entry = Playerdshptdefend(**mapped_row)
+                    db.session.merge(db_entry)
+                    db.session.commit()
+                    logger.info(f"Inserted row for Playerdshptdefend: {mapped_row}")
+        except IntegrityError as e:
+            db.session.rollback()
+            logger.error(f"Integrity error for player {player.person_id}: {e}")
+        except Exception as e:
+            logger.error(f"Error loading player dashboard defend stats for player {player.person_id}: {e}")
+
+
+def load_playerdshptshots():
+    logger.info("Starting to load player dashboard shot stats...")
+    column_mapping = {
+        'player_id': 'PLAYER_ID',
+        'season_id': 'SEASON_ID',
+        'shot_type': 'SHOT_TYPE',
+        'shot_zone': 'SHOT_ZONE',
+        'fgm': 'FGM',
+        'fga': 'FGA',
+        'fg_pct': 'FG_PCT'
+    }
+
+    players = Player.query.all()
+    for player in players:
+        try:
+            params = {'team_id': player.team_id, 'player_id': player.person_id}
+            fetch_and_insert_data(playerdashptshots.PlayerDashPtShots, Playerdshptshots, column_mapping, params)
+        except Exception as e:
+            logger.error(f"Error loading player dashboard shot stats for player {player.person_id}: {e}")
+
+def load_shotchartdetail():
+    logger.info("Starting to load shot chart details...")
+    column_mapping = {
+        'player_id': 'PLAYER_ID',
+        'game_id': 'GAME_ID',
+        'team_id': 'TEAM_ID',
+        'shot_attempted_flag': 'SHOT_ATTEMPTED_FLAG',
+        'shot_made_flag': 'SHOT_MADE_FLAG',
+        'shot_zone_basic': 'SHOT_ZONE_BASIC',
+        'shot_zone_area': 'SHOT_ZONE_AREA',
+        'shot_zone_range': 'SHOT_ZONE_RANGE',
+        'shot_distance': 'SHOT_DISTANCE',
+        'loc_x': 'LOC_X',
+        'loc_y': 'LOC_Y',
+        'shot_attempted_date': 'GAME_DATE'
+    }
+
+    players = Player.query.all()
+    for player in players:
+        try:
+            params = {'player_id': player.person_id, 'game_id': '', 'team_id': player.team_id}  # Adjust game_id as needed
+            fetch_and_insert_data(shotchartdetail.ShotChartDetail, Shotchartdetail, column_mapping, params)
+        except Exception as e:
+            logger.error(f"Error loading shot chart details for player {player.person_id}: {e}")
+
+def load_synergyplaytypes():
+    logger.info("Starting to load synergy play types...")
+    column_mapping = {
+        'player_id': 'PLAYER_ID',
+        'play_type': 'PLAY_TYPE',
+        'possession': 'POSS',
+        'points': 'PTS',
+        'field_goals_made': 'FGM',
+        'field_goals_attempted': 'FGA',
+        'points_per_possession': 'PPP'
+    }
+
+    players = Player.query.all()
+    for player in players:
+        try:
+            params = {'player_id': player.person_id}
+            fetch_and_insert_data(synergyplaytypes.SynergyPlayTypes, Synergyplaytypes, column_mapping, params)
+        except Exception as e:
+            logger.error(f"Error loading synergy play types for player {player.person_id}: {e}")
 
 if __name__ == '__main__':
     with app.app_context():
@@ -359,5 +336,12 @@ if __name__ == '__main__':
         # load_player_game_logs()
         # update_game_dates()
         # update_is_home_game()
-        fetch_and_store_team_estimated_metrics()
-        fetch_and_store_player_estimated_metrics()
+        # fetch_and_store_team_estimated_metrics()
+        # fetch_and_store_player_estimated_metrics()
+        # load_cumestats()
+        # load_playerdshptpass()
+        # load_playerdshptreb()
+        load_playerdshptdefend()
+        # load_playerdshptshots()
+        # load_shotchartdetail()
+        # load_synergyplaytypes()

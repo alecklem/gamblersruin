@@ -106,36 +106,36 @@ const PlayerList = () => {
         Enter Player and Prop Bet
       </h1>
       <div className="">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <div className="relative">
             {selectedPlayer && (
               <img
                 width={40}
                 src={`https://cdn.nba.com/headshots/nba/latest/1040x760/${selectedPlayer.person_id}.png`}
                 alt={`${selectedPlayer.full_name}'s headshot`}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 flex-none"
               />
             )}
             <input
               type="text"
-              className="border rounded pl-3 w-60 h-12"
+              className="border shrink-none rounded pl-3 w-60 h-12"
               placeholder="Search for a player"
               value={searchQuery}
               onChange={handleSearchQueryChange}
             />
             {isPlayerDropdownVisible && selectedPlayer == null && (
-              <ul className="player-dropdown absolute w-60 border border-gray-300 rounded mt-1 max-h-60 overflow-y-auto bg-white z-10">
+              <ul className="player-dropdown absolute w-60 border border-gray-300 rounded mt-1 max-h-60 overflow-y-auto bg-white z-10 flex-none">
                 {filteredPlayers.map((player) => (
                   <li
                     key={player.id}
                     onClick={() => handlePlayerClick(player)}
-                    className="cursor-pointer p-2 border-b hover:bg-gray-200 flex items-center"
+                    className="cursor-pointer p-2 border-b hover:bg-gray-200 flex items-center flex-none"
                   >
                     <img
                       width={40}
                       src={`https://cdn.nba.com/headshots/nba/latest/1040x760/${player.person_id}.png`}
                       alt={`${player.full_name}'s headshot`}
-                      className="inline-block mr-2"
+                      className="inline-block mr-2 flex-none"
                     />
                     {player.full_name}
                   </li>
@@ -158,7 +158,7 @@ const PlayerList = () => {
           ></input>
           <button
             onClick={handleSave}
-            className="bg-blue-500 text-white px-2 rounded" // Adjust padding here
+            className="bg-blue-500 text-white px-2 rounded w-50 h-12" // Adjust padding here
           >
             Save
           </button>
